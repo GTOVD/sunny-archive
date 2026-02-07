@@ -3,7 +3,7 @@ import { createStorefrontClient } from "@shopify/hydrogen-react";
 const client = createStorefrontClient({
   storeDomain: process.env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN || 'sunny-archive.myshopify.com',
   publicStorefrontToken: process.env.NEXT_PUBLIC_SHOPIFY_STOREFRONT_API_TOKEN || 'placeholder',
-  storefrontApiVersion: "2024-01",
+  storefrontApiVersion: "2025-10",
 });
 
 export const getStorefrontApiUrl = client.getStorefrontApiUrl;
