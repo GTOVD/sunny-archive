@@ -19,6 +19,12 @@
     "shopify-buy": "^2.21.0",
     "tailwind-merge": "^2.3.0"
   },
+  "overrides": {
+    "@shopify/hydrogen-react": {
+      "react": "$react",
+      "react-dom": "$react-dom"
+    }
+  },
   "devDependencies": {
     "@types/node": "^20.14.10",
     "@types/react": "^19.0.0",
