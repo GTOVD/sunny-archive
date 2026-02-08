@@ -1,4 +1,5 @@
 import { createStorefrontClient } from "@shopify/hydrogen-react";
+import { ShopifyCheckoutSchema, ShopifyProductSchema } from "./schema";
 
 const client = createStorefrontClient({
   storeDomain: process.env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN || "placeholder-domain.myshopify.com",
@@ -8,6 +9,65 @@ const client = createStorefrontClient({
 
 export const getStorefrontApiUrl = client.getStorefrontApiUrl;
 export const getPublicTokenHeaders = client.getPublicTokenHeaders;
+
+async function storefrontFetch(query: string, variables = {}) {
+  const response = await fetch(getStorefrontApiUrl(), {
+    method: "POST",
+    headers: getPublicTokenHeaders(),
+    body: JSON.stringify({ query, variables }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+
+  return response.json();
+}
+
+export async function getProduct(handle: string) {
+  const query = `
+    query getProduct($handle: String!) {
+      product(handle: $handle) {
+        id
+        title
+        handle
+        description
+        images(first: 5) {
+          nodes {
+            url
+            altText
+            width
+            height
+          }
+        }
+        priceRange {
+          minVariantPrice {
+            amount
+            currencyCode
+          }
+        }
+        variants(first: 1) {
+          nodes {
+            id
+            title
+          }
+        }
+      }
+    }
+  `;
+
+  const { data, errors } = await storefrontFetch(query, { handle });
+
+  if (errors) {
+    throw new Error(`Shopify API Errors: ${JSON.stringify(errors)}`);
+  }
+
+  if (!data?.product) {
+    return null;
+  }
+
+  return ShopifyProductSchema.parse(data.product);
+}
 
 export async function createCheckout(variantId: string) {
   const query = `
@@ -24,25 +84,17 @@ export async function createCheckout(variantId: string) {
     }
   `;
 
-  const response = await fetch(getStorefrontApiUrl(), {
-    method: "POST",
-    headers: getPublicTokenHeaders(),
-    body: JSON.stringify({
-      query,
-      variables: {
-        input: {
-          lineItems: [{ variantId, quantity: 1 }],
-        },
-      },
-    }),
+  const { data, errors } = await storefrontFetch(query, {
+    input: {
+      lineItems: [{ variantId, quantity: 1 }],
+    },
   });
-
-  const { data, errors } = await response.json();
 
   if (errors || data?.checkoutCreate?.checkoutUserErrors?.length > 0) {
     console.error("Shopify Checkout Error:", errors || data.checkoutCreate.checkoutUserErrors);
     throw new Error("Failed to create checkout");
   }
 
-  return data.checkoutCreate.checkout.webUrl;
+  const validated = ShopifyCheckoutSchema.parse(data.checkoutCreate.checkout);
+  return validated.webUrl;
 }
