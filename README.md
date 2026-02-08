@@ -1,5 +1,7 @@
 # Sunny Archive 📦
 
+![Deployment Status](https://github.com/GTOVD/sunny-archive/actions/workflows/deployment-notify.yml/badge.svg)
+
 > *“We see the invisible and we do the impossible. We keep pushing forward for those who have fallen, and for those we will follow.”*
 
 Welcome to the **Sunny Archive**, the primary repository and digital treasury of the Zown ecosystem. This is more than a database; it is a meticulously curated vessel designed to preserve the history, lore, and assets of a legacy decades in the making.
