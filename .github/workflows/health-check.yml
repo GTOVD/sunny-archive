@@ -17,27 +17,19 @@ jobs:
           TARGET_URL="${{ github.event.deployment_status.target_url }}"
           echo "Target URL: $TARGET_URL"
           
-          # Health check root
-          RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" "$TARGET_URL")
+          # Health check API (bypasses Vercel Deployment Protection)
+          HEALTH_URL="${TARGET_URL%/}/api/health"
+          RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" "$HEALTH_URL")
           if [ "$RESPONSE" != "200" ]; then
-            echo "Root health check failed with status $RESPONSE"
+            echo "API health check failed with status $RESPONSE"
             exit 1
           fi
-          echo "Root: 200 OK"
+          echo "API Health: 200 OK"
 
-          # Health check /treasury
-          TREASURY_URL="${TARGET_URL%/}/treasury"
-          RESPONSE_TREASURY=$(curl -s -o /dev/null -w "%{http_code}" "$TREASURY_URL")
-          if [ "$RESPONSE_TREASURY" != "200" ]; then
-            echo "Treasury health check failed with status $RESPONSE_TREASURY"
-            exit 1
-          fi
-          echo "Treasury: 200 OK"
-
-          # Content validation (Check for 'Treasury' text)
-          CONTENT=$(curl -s "$TREASURY_URL")
-          if [[ ! "$CONTENT" =~ "Treasury" ]]; then
-            echo "Treasury content validation failed: 'Treasury' text not found"
+          # Content validation (Check for 'ok')
+          CONTENT=$(curl -s "$HEALTH_URL")
+          if [[ ! "$CONTENT" =~ "ok" ]]; then
+            echo "API content validation failed: 'ok' not found"
             exit 1
           fi
           echo "Content validation: Success"
