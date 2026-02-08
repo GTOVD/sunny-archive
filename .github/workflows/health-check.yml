@@ -17,9 +17,19 @@ jobs:
           TARGET_URL="${{ github.event.deployment_status.target_url }}"
           echo "Target URL: $TARGET_URL"
           
-          # Health check API (bypasses Vercel Deployment Protection)
+          # Health check API (bypasses Vercel Deployment Protection via custom header if configured)
+          # Note: We are using a 5s timeout and max-time to avoid hanging
           HEALTH_URL="${TARGET_URL%/}/api/health"
-          RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" "$HEALTH_URL")
+          
+          # Attempt 1: Standard request
+          RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 "$HEALTH_URL")
+          
+          # Attempt 2: If 401, try with Vercel Protection Bypass header (if secret is available)
+          if [ "$RESPONSE" == "401" ] && [ ! -z "${{ secrets.VERCEL_PROTECTION_BYPASS }}" ]; then
+            echo "Standard check returned 401. Retrying with bypass header..."
+            RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 -H "x-vercel-protection-bypass: ${{ secrets.VERCEL_PROTECTION_BYPASS }}" "$HEALTH_URL")
+          fi
+
           if [ "$RESPONSE" != "200" ]; then
             echo "API health check failed with status $RESPONSE"
             exit 1
@@ -27,7 +37,12 @@ jobs:
           echo "API Health: 200 OK"
 
           # Content validation (Check for 'ok')
-          CONTENT=$(curl -s "$HEALTH_URL")
+          if [ ! -z "${{ secrets.VERCEL_PROTECTION_BYPASS }}" ]; then
+            CONTENT=$(curl -s -H "x-vercel-protection-bypass: ${{ secrets.VERCEL_PROTECTION_BYPASS }}" --max-time 10 "$HEALTH_URL")
+          else
+            CONTENT=$(curl -s --max-time 10 "$HEALTH_URL")
+          fi
+          
           if [[ ! "$CONTENT" =~ "ok" ]]; then
             echo "API content validation failed: 'ok' not found"
             exit 1
