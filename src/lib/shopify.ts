@@ -1,9 +1,10 @@
 import { createStorefrontClient } from "@shopify/hydrogen-react";
 import { ShopifyCheckoutSchema, ShopifyProductSchema } from "./schema";
+import { envVars } from "./env";
 
 const client = createStorefrontClient({
-  storeDomain: process.env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN || "placeholder-domain.myshopify.com",
-  publicStorefrontToken: process.env.NEXT_PUBLIC_SHOPIFY_STOREFRONT_API_TOKEN || "placeholder-token",
+  storeDomain: envVars.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN,
+  publicStorefrontToken: envVars.NEXT_PUBLIC_SHOPIFY_STOREFRONT_API_TOKEN,
   storefrontApiVersion: "2024-01",
 });
 
