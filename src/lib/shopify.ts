@@ -37,50 +37,51 @@ async function storefrontFetch(query: string, variables = {}) {
   }
 }
 
-export async function getProduct(handle: string) {
+export async function getProducts(limit: number = 10) {
   const query = `
-    query getProduct($handle: String!) {
-      product(handle: $handle) {
-        id
-        title
-        handle
-        description
-        images(first: 5) {
-          nodes {
-            url
-            altText
-            width
-            height
+    query getProducts($limit: Int!) {
+      products(first: $limit) {
+        nodes {
+          id
+          title
+          handle
+          description
+          images(first: 1) {
+            nodes {
+              url
+              altText
+              width
+              height
+            }
           }
-        }
-        priceRange {
-          minVariantPrice {
-            amount
-            currencyCode
+          priceRange {
+            minVariantPrice {
+              amount
+              currencyCode
+            }
           }
-        }
-        variants(first: 1) {
-          nodes {
-            id
-            title
+          variants(first: 1) {
+            nodes {
+              id
+            }
           }
         }
       }
     }
   `;
 
-  const { data, errors } = await storefrontFetch(query, { handle });
+  const { data, errors } = await storefrontFetch(query, { limit });
 
   if (errors) {
     console.warn(`⚠️ Shopify API Errors: ${JSON.stringify(errors)}`);
-    return null;
+    return [];
   }
 
-  if (!data?.product) {
-    return null;
+  if (!data?.products?.nodes) {
+    return [];
   }
 
-  return ShopifyProductSchema.parse(data.product);
+  return data.products.nodes.map((product: any) => ShopifyProductSchema.parse(product));
 }
 
 export async function createCheckout(variantId: string) {
