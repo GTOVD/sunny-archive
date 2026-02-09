@@ -1,15 +1,16 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
+import { validateInternalRequest, AUTH_ERROR_RESPONSE } from '@/lib/auth/internal-api';
 
 /**
  * Health check endpoint for deployment smoke tests.
- * Note: If Vercel Deployment Protection is enabled, requests will be blocked 
- * with 401 Unauthorized unless the x-vercel-protection-bypass header is present
- * OR the URL is accessed via a browser with a valid session.
- * 
- * The GitHub Action health-check.yml handles this by providing the bypass header
- * using the VERCEL_PROTECTION_BYPASS_TOKEN secret.
+ * This route is intended for internal/CI use and validates the 
+ * x-vercel-protection-bypass header to ensure it's a legitimate request.
  */
-export async function GET() {
+export async function GET(req: NextRequest) {
+  if (!validateInternalRequest(req)) {
+    return NextResponse.json(AUTH_ERROR_RESPONSE.json, { status: AUTH_ERROR_RESPONSE.status });
+  }
+
   const version = process.env.NEXT_PUBLIC_APP_VERSION || '1.0.0';
   const gitSha = process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA || 'dev';
   
