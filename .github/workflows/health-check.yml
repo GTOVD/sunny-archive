@@ -23,29 +23,48 @@ jobs:
           # Health check API (bypasses Vercel Deployment Protection via custom header if configured)
           HEALTH_URL="${TARGET_URL%/}/api/health"
           
-          # Attempt 1: Standard request
-          RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 "$HEALTH_URL")
-          echo "Standard check returned $RESPONSE"
-          
-          # Attempt 2: If 401, try with Vercel Protection Bypass header
-          if [ "$RESPONSE" == "401" ] && [ -n "$VERCEL_PROTECTION_BYPASS_TOKEN" ]; then
-            echo "Retrying with bypass header..."
-            RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 -H "x-vercel-protection-bypass: $VERCEL_PROTECTION_BYPASS_TOKEN" "$HEALTH_URL")
-          fi
+          # Use a loop for retries (3 attempts)
+          MAX_RETRIES=3
+          RETRY_COUNT=0
+          SUCCESS=false
 
-          if [ "$RESPONSE" != "200" ]; then
-            echo "API health check failed with status $RESPONSE"
+          while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+            RETRY_COUNT=$((RETRY_COUNT + 1))
+            echo "Attempt $RETRY_COUNT..."
+            
+            # Attempt 1: Standard request
+            RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 15 "$HEALTH_URL")
+            echo "Standard check returned $RESPONSE"
+            
+            # Attempt 2: If 401, try with Vercel Protection Bypass header
+            if [ "$RESPONSE" == "401" ] && [ -n "$VERCEL_PROTECTION_BYPASS_TOKEN" ]; then
+              echo "Retrying with bypass header..."
+              RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 15 -H "x-vercel-protection-bypass: $VERCEL_PROTECTION_BYPASS_TOKEN" "$HEALTH_URL")
+            fi
+
+            if [ "$RESPONSE" == "200" ]; then
+              SUCCESS=true
+              break
+            fi
+            
+            echo "Attempt $RETRY_COUNT failed with status $RESPONSE. Waiting 5 seconds..."
+            sleep 5
+          done
+
+          if [ "$SUCCESS" = false ]; then
+            echo "API health check failed after $MAX_RETRIES attempts."
             exit 1
           fi
           echo "API Health: 200 OK"
 
           # Content validation (Check for 'ok')
           if [ -n "$VERCEL_PROTECTION_BYPASS_TOKEN" ]; then
-            CONTENT=$(curl -s -H "x-vercel-protection-bypass: $VERCEL_PROTECTION_BYPASS_TOKEN" --max-time 10 "$HEALTH_URL")
+            CONTENT=$(curl -s -L -H "x-vercel-protection-bypass: $VERCEL_PROTECTION_BYPASS_TOKEN" --max-time 15 "$HEALTH_URL")
           else
-            CONTENT=$(curl -s --max-time 10 "$HEALTH_URL")
+            CONTENT=$(curl -s -L --max-time 15 "$HEALTH_URL")
           fi
           
+          echo "Content: $CONTENT"
           if [[ ! "$CONTENT" =~ "ok" ]]; then
             echo "API content validation failed: 'ok' not found"
             exit 1
