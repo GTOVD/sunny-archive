@@ -1,9 +1,10 @@
 import { MetadataSchema, ArchiveItemSchema, type ArchiveItem } from "./schema";
+import { CASProvider } from "./cas";
 import crypto from "crypto";
 
 export class ArchiveLoader {
   static generateChecksum(data: string): string {
-    return crypto.createHash("sha256").update(data).digest("hex");
+    return CASProvider.hash(data);
   }
 
   static parse(rawData: string, source: string): ArchiveItem {
