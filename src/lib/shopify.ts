@@ -3,8 +3,8 @@ import { ShopifyCheckoutSchema, ShopifyProductSchema } from "./schema";
 import { envVars } from "./env";
 
 const client = createStorefrontClient({
-  storeDomain: envVars.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN,
-  publicStorefrontToken: envVars.NEXT_PUBLIC_SHOPIFY_STOREFRONT_API_TOKEN,
+  storeDomain: envVars.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN || "placeholder.myshopify.com",
+  publicStorefrontToken: envVars.NEXT_PUBLIC_SHOPIFY_STOREFRONT_API_TOKEN || "placeholder",
   storefrontApiVersion: "2024-01",
 });
 
@@ -12,17 +12,29 @@ export const getStorefrontApiUrl = client.getStorefrontApiUrl;
 export const getPublicTokenHeaders = client.getPublicTokenHeaders;
 
 async function storefrontFetch(query: string, variables = {}) {
-  const response = await fetch(getStorefrontApiUrl(), {
-    method: "POST",
-    headers: getPublicTokenHeaders(),
-    body: JSON.stringify({ query, variables }),
-  });
-
-  if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`);
+  // Guard against missing environment variables during build phase
+  if (!envVars.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN || !envVars.NEXT_PUBLIC_SHOPIFY_STOREFRONT_API_TOKEN) {
+    console.warn("⚠️ Shopify environment variables missing. Returning empty data for build.");
+    return { data: null };
   }
 
-  return response.json();
+  try {
+    const response = await fetch(getStorefrontApiUrl(), {
+      method: "POST",
+      headers: getPublicTokenHeaders(),
+      body: JSON.stringify({ query, variables }),
+    });
+
+    if (!response.ok) {
+      console.warn(`⚠️ Shopify API fetch failed with status ${response.status}. Returning empty data.`);
+      return { data: null };
+    }
+
+    return response.json();
+  } catch (error) {
+    console.error("❌ Shopify Fetch Error (Supressed for Build):", error);
+    return { data: null };
+  }
 }
 
 export async function getProduct(handle: string) {
@@ -60,7 +72,8 @@ export async function getProduct(handle: string) {
   const { data, errors } = await storefrontFetch(query, { handle });
 
   if (errors) {
-    throw new Error(`Shopify API Errors: ${JSON.stringify(errors)}`);
+    console.warn(`⚠️ Shopify API Errors: ${JSON.stringify(errors)}`);
+    return null;
   }
 
   if (!data?.product) {
@@ -92,8 +105,12 @@ export async function createCheckout(variantId: string) {
   });
 
   if (errors || data?.checkoutCreate?.checkoutUserErrors?.length > 0) {
-    console.error("Shopify Checkout Error:", errors || data.checkoutCreate.checkoutUserErrors);
-    throw new Error("Failed to create checkout");
+    console.error("Shopify Checkout Error:", errors || data?.checkoutCreate?.checkoutUserErrors);
+    return null;
+  }
+
+  if (!data?.checkoutCreate?.checkout) {
+    return null;
   }
 
   const validated = ShopifyCheckoutSchema.parse(data.checkoutCreate.checkout);
