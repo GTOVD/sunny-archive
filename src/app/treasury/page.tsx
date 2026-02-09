@@ -1,8 +1,9 @@
 import { getProducts, createCheckout } from '@/lib/shopify';
 import { redirect } from 'next/navigation';
+import { ShopifyProduct } from '@/lib/schema';
 
 export default async function TreasuryPage() {
-  const products = await getProducts(12);
+  const products: ShopifyProduct[] = await getProducts(12);
 
   async function handleAcquire(formData: FormData) {
     'use server';
@@ -23,7 +24,7 @@ export default async function TreasuryPage() {
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
-        {products.map((product) => (
+        {products.map((product: ShopifyProduct) => (
           <div key={product.id} className="group border border-gold/10 p-6 bg-navy-light/20 hover:border-gold/50 transition-all duration-500">
             {product.images.nodes[0] && (
               <div className="aspect-[3/4] overflow-hidden mb-6 bg-navy-dark">
