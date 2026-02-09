@@ -50,11 +50,17 @@ jobs:
           echo "Content validation: Success"
 
       - name: Notify Success
-        if: success() && env.DISCORD_WEBHOOK != ''
+        if: success() && secrets.DISCORD_WEBHOOK != ''
         uses: actions/github-script@v7
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
         with:
           script: |
             const discordWebhook = process.env.DISCORD_WEBHOOK;
+            if (!discordWebhook) {
+              console.log('DISCORD_WEBHOOK is not set, skipping notification.');
+              return;
+            }
             const targetUrl = context.payload.deployment_status.target_url;
             const repo = context.repo.owner + '/' + context.repo.repo;
             
@@ -67,15 +73,19 @@ jobs:
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify(message),
             });
-        env:
-          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
 
       - name: Notify Failure
-        if: failure() && env.DISCORD_WEBHOOK != ''
+        if: failure() && secrets.DISCORD_WEBHOOK != ''
         uses: actions/github-script@v7
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
         with:
           script: |
             const discordWebhook = process.env.DISCORD_WEBHOOK;
+            if (!discordWebhook) {
+              console.log('DISCORD_WEBHOOK is not set, skipping notification.');
+              return;
+            }
             const targetUrl = context.payload.deployment_status.target_url;
             const repo = context.repo.owner + '/' + context.repo.repo;
             
@@ -88,5 +98,3 @@ jobs:
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify(message),
             });
-        env:
-          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
