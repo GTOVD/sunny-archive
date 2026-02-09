@@ -53,26 +53,31 @@ jobs:
           echo "Content validation: Success"
 
       - name: Notify
-        if: always() && secrets.DISCORD_WEBHOOK != ''
-        uses: actions/github-script@v7
+        if: always()
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
           HEALTH_SUCCESS: ${{ steps.smoke_test.outcome }}
-        with:
-          script: |
-            const discordWebhook = process.env.DISCORD_WEBHOOK;
-            const success = process.env.HEALTH_SUCCESS === 'success';
-            const targetUrl = context.payload.deployment_status.target_url;
-            const repo = context.repo.owner + '/' + context.repo.repo;
-            
-            const message = {
-              content: success 
-                ? `✅ **Health Check Passed** for \`${repo}\`\n**URL:** ${targetUrl}\nStatus: 200 OK, Content Validated.`
-                : `❌ **Health Check Failed** for \`${repo}\`\n**Target URL:** ${targetUrl}\nAction: Check deployment logs immediately.`,
-            };
-
-            await fetch(discordWebhook, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(message),
-            });
+        run: |
+          if [ -z "$DISCORD_WEBHOOK" ]; then
+            echo "Skipping notification: DISCORD_WEBHOOK not set."
+            exit 0
+          fi
+          
+          REPO="${{ github.repository }}"
+          TARGET_URL="${{ github.event.deployment_status.target_url }}"
+          
+          if [ "$HEALTH_SUCCESS" == "success" ]; then
+            CONTENT="✅ **Health Check Passed** for \`$REPO\`\n**URL:** $TARGET_URL\nStatus: 200 OK, Content Validated."
+          else
+            CONTENT="❌ **Health Check Failed** for \`$REPO\`\n**Target URL:** $TARGET_URL\nAction: Check deployment logs immediately."
+          fi
+          
+          # Payload creation with escaped quotes
+          PAYLOAD=$(cat <<EOF
+          {
+            "content": "$CONTENT"
+          }
+          EOF
+          )
+          
+          curl -H "Content-Type: application/json" -d "$PAYLOAD" "$DISCORD_WEBHOOK"
