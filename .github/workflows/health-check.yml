@@ -8,6 +8,8 @@ jobs:
     if: github.event.deployment_status.state == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    env:
+      DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -15,16 +17,21 @@ jobs:
       - name: Run Smoke Tests
         id: smoke_test
         env:
-          TARGET_URL: ${{ github.event.deployment_status.target_url }}
-          VERCEL_PROTECTION_BYPASS_TOKEN: ${{ secrets.VERCEL_PROTECTION_BYPASS_TOKEN }}
+          BYPASS_TOKEN: ${{ secrets.VERCEL_PROTECTION_BYPASS_TOKEN }}
         run: |
-          echo "Target URL: $TARGET_URL"
-          
-          # Health check API (bypasses Vercel Deployment Protection via custom header if configured)
+          TARGET_URL="${{ github.event.deployment_status.target_url }}"
           HEALTH_URL="${TARGET_URL%/}/api/health"
+          echo "Target URL: $TARGET_URL"
+          echo "Health URL: $HEALTH_URL"
           
-          # Use a loop for retries (3 attempts)
-          MAX_RETRIES=3
+          # Use a variable for headers to simplify curls
+          HEADER_ARG=""
+          if [ ! -z "$BYPASS_TOKEN" ]; then
+            HEADER_ARG="-H \"x-vercel-protection-bypass: $BYPASS_TOKEN\""
+          fi
+          
+          # Use a loop for retries (5 attempts)
+          MAX_RETRIES=5
           RETRY_COUNT=0
           SUCCESS=false
 
@@ -32,72 +39,55 @@ jobs:
             RETRY_COUNT=$((RETRY_COUNT + 1))
             echo "Attempt $RETRY_COUNT..."
             
-            # Attempt 1: Standard request
-            RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 15 "$HEALTH_URL")
-            echo "Standard check returned $RESPONSE"
+            # Attempt 1: Check status code
+            RESPONSE=$(eval curl -s -o /dev/null -w "%{http_code}" --max-time 15 "$HEADER_ARG" "$HEALTH_URL")
+            echo "Check returned status $RESPONSE"
             
-            # Attempt 2: If 401, try with Vercel Protection Bypass header
-            if [ "$RESPONSE" == "401" ] && [ -n "$VERCEL_PROTECTION_BYPASS_TOKEN" ]; then
-              echo "Retrying with bypass header..."
-              RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 15 -H "x-vercel-protection-bypass: $VERCEL_PROTECTION_BYPASS_TOKEN" "$HEALTH_URL")
-              echo "Bypass check returned $RESPONSE"
-            fi
-
             if [ "$RESPONSE" == "200" ]; then
-              SUCCESS=true
-              break
+              # Attempt 2: Content validation (Check for 'ok')
+              CONTENT=$(eval curl -s --max-time 15 "$HEADER_ARG" "$HEALTH_URL")
+              
+              if [[ "$CONTENT" =~ "ok" ]]; then
+                echo "API Health: 200 OK"
+                echo "Content validation: Success"
+                SUCCESS=true
+                break
+              else
+                echo "Content validation failed: 'ok' not found"
+              fi
             fi
             
-            echo "Attempt $RETRY_COUNT failed with status $RESPONSE. Waiting 10 seconds..."
+            echo "Attempt $RETRY_COUNT failed. Waiting 10 seconds..."
             sleep 10
           done
 
           if [ "$SUCCESS" = false ]; then
-            echo "API health check failed after $MAX_RETRIES attempts."
+            echo "Health check failed after $MAX_RETRIES attempts."
             exit 1
           fi
-          echo "API Health: 200 OK"
-
-          # Content validation (Check for 'ok')
-          if [ -n "$VERCEL_PROTECTION_BYPASS_TOKEN" ]; then
-            CONTENT=$(curl -s -L -H "x-vercel-protection-bypass: $VERCEL_PROTECTION_BYPASS_TOKEN" --max-time 15 "$HEALTH_URL")
-          else
-            CONTENT=$(curl -s -L --max-time 15 "$HEALTH_URL")
-          fi
-          
-          # Trim content for logging
-          CLEAN_CONTENT=$(echo "$CONTENT" | head -c 100)
-          echo "Content snippet: $CLEAN_CONTENT"
-          
-          if [[ ! "$CONTENT" =~ "ok" ]]; then
-            echo "API content validation failed: 'ok' not found"
-            exit 1
-          fi
-          echo "Content validation: Success"
 
       - name: Notify
-        if: always()
-        env:
-          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
-          HEALTH_SUCCESS: ${{ steps.smoke_test.outcome }}
-        run: |
-          if [ -z "$DISCORD_WEBHOOK" ]; then
-            echo "Skipping notification: DISCORD_WEBHOOK not set."
-            exit 0
-          fi
-          
-          REPO="${{ github.repository }}"
-          TARGET_URL="${{ github.event.deployment_status.target_url }}"
-          
-          # Create message based on success or failure
-          if [ "$HEALTH_SUCCESS" == "success" ]; then
-            MESSAGE="✅ **Health Check Passed** for \`$REPO\`\n**URL:** $TARGET_URL\nStatus: 200 OK, Content Validated."
-          else
-            MESSAGE="❌ **Health Check Failed** for \`$REPO\`\n**Target URL:** $TARGET_URL\nAction: Check deployment logs immediately."
-          fi
-          
-          # Use jq to build a safe JSON payload if available, or a robust bash heredoc
-          # Note: Github-hosted runners have 'jq' pre-installed.
-          PAYLOAD=$(jq -n --arg msg "$MESSAGE" '{content: $msg}')
-          
-          curl -H "Content-Type: application/json" -d "$PAYLOAD" "$DISCORD_WEBHOOK"
+        if: always() && env.DISCORD_WEBHOOK != ''
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const discordWebhook = process.env.DISCORD_WEBHOOK;
+            const targetUrl = context.payload.deployment_status.target_url;
+            const repo = `${context.repo.owner}/${context.repo.repo}`;
+            const success = '${{ steps.smoke_test.outcome }}' === 'success';
+            
+            const payload = {
+              embeds: [{
+                title: success ? "✅ Health Check Passed" : "❌ Health Check Failed",
+                color: success ? 3066993 : 15158332,
+                description: success 
+                  ? `**Repo:** \`${repo}\`\n**Status:** 200 OK (Content Verified)\n**URL:** ${targetUrl}`
+                  : `**Repo:** \`${repo}\`\n**Action:** Audit logs for failure.\n**URL:** ${targetUrl}`
+              }]
+            };
+
+            await fetch(discordWebhook, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload),
+            });
