@@ -56,7 +56,7 @@ export default function Home() {
                 Sacred manuscripts and historical records.
               </p>
               <div style={{ paddingTop: '1.5rem', display: 'flex', justifyContent: 'center' }}>
-                <span style={{ color: 'rgba(212, 175, 55, 0.6)', textTransform: 'uppercase', letterSpacing: '0.2em', fontSize: '0.625rem' }}>Enter Vault</span>
+                <span style={{ color: 'rgba(212, 175, 55, 0.6)', textTransform: 'uppercase', letterSpacing: '0.2em', fontSize: '0.625rem', borderBottom: '1px solid rgba(212, 175, 55, 0.3)' }}>Enter Vault</span>
               </div>
             </div>
           </Link>
@@ -80,7 +80,7 @@ export default function Home() {
                 Artistic credits and visual artifacts.
               </p>
               <div style={{ paddingTop: '1.5rem', display: 'flex', justifyContent: 'center' }}>
-                <span style={{ color: 'rgba(212, 175, 55, 0.6)', textTransform: 'uppercase', letterSpacing: '0.2em', fontSize: '0.625rem' }}>View Gallery</span>
+                <span style={{ color: 'rgba(212, 175, 55, 0.6)', textTransform: 'uppercase', letterSpacing: '0.2em', fontSize: '0.625rem', borderBottom: '1px solid rgba(212, 175, 55, 0.3)' }}>View Gallery</span>
               </div>
             </div>
           </Link>
@@ -104,7 +104,7 @@ export default function Home() {
                 Exclusive goods and artifacts.
               </p>
               <div style={{ paddingTop: '1.5rem', display: 'flex', justifyContent: 'center' }}>
-                <span style={{ color: 'rgba(212, 175, 55, 0.6)', textTransform: 'uppercase', letterSpacing: '0.2em', fontSize: '0.625rem' }}>Open Treasury</span>
+                <span style={{ color: 'rgba(212, 175, 55, 0.6)', textTransform: 'uppercase', letterSpacing: '0.2em', fontSize: '0.625rem', borderBottom: '1px solid rgba(212, 175, 55, 0.3)' }}>Open Treasury</span>
               </div>
             </div>
           </Link>
