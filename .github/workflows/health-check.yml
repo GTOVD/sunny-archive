@@ -7,44 +7,44 @@ jobs:
   health-check:
     if: github.event.deployment_status.state == 'success'
     runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
       - name: Run Smoke Tests
         id: smoke_test
+        env:
+          BYPASS_TOKEN: ${{ secrets.VERCEL_PROTECTION_BYPASS_TOKEN }}
         run: |
           TARGET_URL="${{ github.event.deployment_status.target_url }}"
-          echo "Target URL: $TARGET_URL"
-          
-          # Health check API (bypasses Vercel Deployment Protection via custom header if configured)
-          # Note: We are using a 5s timeout and max-time to avoid hanging
           HEALTH_URL="${TARGET_URL%/}/api/health"
+          echo "Target URL: $TARGET_URL"
+          echo "Health URL: $HEALTH_URL"
           
-          # Attempt 1: Standard request
-          RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 "$HEALTH_URL")
-          
-          # Attempt 2: If 401, try with Vercel Protection Bypass header (if secret is available)
-          if [ "$RESPONSE" == "401" ] && [ ! -z "${{ secrets.VERCEL_PROTECTION_BYPASS_TOKEN }}" ]; then
-            echo "Standard check returned 401. Retrying with bypass header..."
-            RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 -H "x-vercel-protection-bypass: ${{ secrets.VERCEL_PROTECTION_BYPASS_TOKEN }}" "$HEALTH_URL")
+          # Use a variable for headers to simplify curls
+          HEADER_ARG=""
+          if [ ! -z "$BYPASS_TOKEN" ]; then
+            HEADER_ARG="-H \"x-vercel-protection-bypass: $BYPASS_TOKEN\""
           fi
-
+          
+          # Attempt 1: Check status code
+          RESPONSE=$(eval curl -s -o /dev/null -w "%{http_code}" --max-time 10 "$HEADER_ARG" "$HEALTH_URL")
+          
           if [ "$RESPONSE" != "200" ]; then
             echo "API health check failed with status $RESPONSE"
             exit 1
           fi
           echo "API Health: 200 OK"
 
-          # Content validation (Check for 'ok')
-          if [ ! -z "${{ secrets.VERCEL_PROTECTION_BYPASS_TOKEN }}" ]; then
-            CONTENT=$(curl -s -H "x-vercel-protection-bypass: ${{ secrets.VERCEL_PROTECTION_BYPASS_TOKEN }}" --max-time 10 "$HEALTH_URL")
-          else
-            CONTENT=$(curl -s --max-time 10 "$HEALTH_URL")
-          fi
+          # Attempt 2: Content validation (Check for 'ok')
+          CONTENT=$(eval curl -s --max-time 10 "$HEADER_ARG" "$HEALTH_URL")
           
           if [[ ! "$CONTENT" =~ "ok" ]]; then
-            echo "API content validation failed: 'ok' not found"
+            echo "API content validation failed: 'ok' not found in response"
+            echo "Response snippet: ${CONTENT:0:100}"
             exit 1
           fi
           echo "Content validation: Success"
@@ -56,7 +56,7 @@ jobs:
           script: |
             const discordWebhook = process.env.DISCORD_WEBHOOK;
             const targetUrl = context.payload.deployment_status.target_url;
-            const repo = context.repo.owner + '/' + context.repo.repo;
+            const repo = `${context.repo.owner}/${context.repo.repo}`;
             
             const message = {
               content: `✅ **Health Check Passed** for \`${repo}\`\n**URL:** ${targetUrl}\nStatus: 200 OK, Content Validated.`,
@@ -67,8 +67,6 @@ jobs:
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify(message),
             });
-        env:
-          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
 
       - name: Notify Failure
         if: failure() && env.DISCORD_WEBHOOK != ''
@@ -77,10 +75,10 @@ jobs:
           script: |
             const discordWebhook = process.env.DISCORD_WEBHOOK;
             const targetUrl = context.payload.deployment_status.target_url;
-            const repo = context.repo.owner + '/' + context.repo.repo;
+            const repo = `${context.repo.owner}/${context.repo.repo}`;
             
             const message = {
-              content: `❌ **Health Check Failed** for \`${repo}\`\n**Target URL:** ${targetUrl}\nAction: Check deployment logs immediately.`,
+              content: `❌ **Health Check Failed** for \`${repo}\`\n**Target URL:** ${targetUrl}\nAction: Check GitHub Action logs for details.`,
             };
 
             await fetch(discordWebhook, {
@@ -88,5 +86,3 @@ jobs:
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify(message),
             });
-        env:
-          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
