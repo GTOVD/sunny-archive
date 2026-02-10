@@ -1,9 +1,9 @@
+import { ShopifyProduct } from '@/lib/schema';
 import { getProducts, createCheckout } from '@/lib/shopify';
 import { redirect } from 'next/navigation';
-import { ShopifyProduct } from '@/lib/schema';
 
 export default async function TreasuryPage() {
-  const products: ShopifyProduct[] = await getProducts(12);
+  const products: ShopifyProduct[] = await getProducts(24);
 
   async function handleAcquire(formData: FormData) {
     'use server';
@@ -17,44 +17,73 @@ export default async function TreasuryPage() {
   }
 
   return (
-    <div className="min-h-screen bg-navy p-12 pt-32">
-      <header className="mb-12 border-b border-gold/30 pb-6">
-        <h1 className="font-serif text-5xl text-gold uppercase tracking-tighter">Treasury</h1>
-        <p className="text-gold/60 mt-2 uppercase tracking-widest text-sm">Exclusive Goods & Artifacts</p>
+    <div className="relative min-h-screen pt-32 pb-24 px-6 md:px-12">
+      {/* Background Ornament */}
+      <div className="absolute top-0 right-0 w-1/2 h-screen bg-gold/[0.02] -z-10 blur-3xl"></div>
+
+      <header className="max-w-7xl mx-auto mb-20 space-y-4">
+        <div className="font-cinzel text-[10px] tracking-[0.6em] text-gold uppercase animate-pulse">
+          Department of Acquisitions
+        </div>
+        <h1 className="text-6xl md:text-8xl font-serif text-white lowercase tracking-tighter">
+          The <span className="gold-text-shimmer italic">Treasury</span>
+        </h1>
+        <div className="h-px w-32 bg-gold/30 mt-8"></div>
+        <p className="max-w-xl text-slate-500 text-sm uppercase tracking-widest leading-relaxed pt-4">
+          A selection of unique, specialized artifacts sourced from independent 
+          American artisans. Hand-crafted legacy items for the modern explorer.
+        </p>
       </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
-        {products.map((product: ShopifyProduct) => (
-          <div key={product.id} className="group border border-gold/10 p-6 bg-navy-light/20 hover:border-gold/50 transition-all duration-500">
-            {product.images.nodes[0] && (
-              <div className="aspect-[3/4] overflow-hidden mb-6 bg-navy-dark">
+      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-20">
+        {products.map((product) => (
+          <div key={product.id} className="group flex flex-col">
+            <div className="luxury-card aspect-[4/5] mb-8">
+              {product.images.nodes[0] ? (
                 <img 
                   src={product.images.nodes[0].url} 
                   alt={product.images.nodes[0].altText || product.title}
-                  className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-700 scale-100 group-hover:scale-110"
+                  className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-1000 scale-105 group-hover:scale-110"
                 />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-navy-dark border border-gold/10">
+                  <span className="font-cinzel text-[10px] text-gold/20 uppercase tracking-widest">Image Pending</span>
+                </div>
+              )}
+              
+              {/* Card Hover Overlay */}
+              <div className="absolute inset-0 bg-slate-950/40 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-center justify-center">
+                 <form action={handleAcquire}>
+                  <input type="hidden" name="variantId" value={product.variants.nodes[0]?.id} />
+                  <button type="submit" className="px-8 py-3 bg-gold text-navy font-cinzel text-[10px] tracking-[0.2em] uppercase hover:bg-gold-bright transition-colors shadow-2xl">
+                    Acquire Artifact
+                  </button>
+                </form>
               </div>
-            )}
-            <h2 className="font-serif text-2xl text-white uppercase mb-2">{product.title}</h2>
-            <p className="text-gold/40 text-sm mb-6 line-clamp-2 uppercase tracking-wide">{product.description}</p>
-            <div className="flex justify-between items-center">
-              <span className="text-white font-mono">
-                {product.priceRange.minVariantPrice.amount} {product.priceRange.minVariantPrice.currencyCode}
-              </span>
-              <form action={handleAcquire}>
-                <input type="hidden" name="variantId" value={product.variants.nodes[0]?.id} />
-                <button type="submit" className="px-6 py-2 border border-gold text-gold uppercase text-xs tracking-widest hover:bg-gold hover:text-navy transition-all">
-                  Acquire
-                </button>
-              </form>
+            </div>
+
+            <div className="space-y-3">
+              <div className="flex justify-between items-baseline border-b border-white/5 pb-2">
+                <h2 className="font-serif text-2xl text-white uppercase group-hover:text-gold transition-colors duration-500">
+                  {product.title}
+                </h2>
+                <span className="font-mono text-xs text-gold/60">
+                  {product.priceRange.minVariantPrice.amount} {product.priceRange.minVariantPrice.currencyCode}
+                </span>
+              </div>
+              <p className="text-[10px] text-slate-500 uppercase tracking-[0.15em] leading-relaxed line-clamp-2">
+                {product.description}
+              </p>
             </div>
           </div>
         ))}
       </div>
       
       {products.length === 0 && (
-        <div className="text-center py-24 border border-dashed border-gold/20">
-          <p className="text-gold/40 uppercase tracking-widest">The Treasury is currently being replenished...</p>
+        <div className="max-w-7xl mx-auto text-center py-40 border border-dashed border-white/5">
+          <p className="font-cinzel text-xs text-gold/30 uppercase tracking-[0.4em]">
+            The vault is currently awaiting replenishment...
+          </p>
         </div>
       )}
     </div>
