@@ -13,9 +13,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="scroll-smooth">
+      <head>
+        <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;600&display=swap" rel="stylesheet" />
+      </head>
       <body className="antialiased selection:bg-gold/30 selection:text-gold-bright">
         {/* Cinematic Noise Overlay */}
-        <div className="fixed inset-0 pointer-events-none z-[100] opacity-[0.03] bg-[url('https://grainy-gradients.vercel.app/noise.svg')] contrast-150 brightness-100"></div>
+        <div className="noise-overlay"></div>
         
         {/* Luxury Border Frame */}
         <div className="fixed inset-0 pointer-events-none z-50 border-[12px] border-slate-950/50"></div>
