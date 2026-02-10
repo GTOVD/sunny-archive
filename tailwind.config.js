@@ -15,6 +15,11 @@ module.exports = {
         },
         slate: {
           950: "#020617",
+        },
+        navy: {
+          DEFAULT: "#0a192f",
+          light: "#1e293b",
+          dark: "#020617",
         }
       },
       fontFamily: {
