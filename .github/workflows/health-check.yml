@@ -40,6 +40,7 @@ jobs:
             if [ "$RESPONSE" == "401" ] && [ -n "$VERCEL_PROTECTION_BYPASS_TOKEN" ]; then
               echo "Retrying with bypass header..."
               RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 15 -H "x-vercel-protection-bypass: $VERCEL_PROTECTION_BYPASS_TOKEN" "$HEALTH_URL")
+              echo "Bypass check returned $RESPONSE"
             fi
 
             if [ "$RESPONSE" == "200" ]; then
@@ -47,8 +48,8 @@ jobs:
               break
             fi
             
-            echo "Attempt $RETRY_COUNT failed with status $RESPONSE. Waiting 5 seconds..."
-            sleep 5
+            echo "Attempt $RETRY_COUNT failed with status $RESPONSE. Waiting 10 seconds..."
+            sleep 10
           done
 
           if [ "$SUCCESS" = false ]; then
@@ -64,7 +65,10 @@ jobs:
             CONTENT=$(curl -s -L --max-time 15 "$HEALTH_URL")
           fi
           
-          echo "Content: $CONTENT"
+          # Trim content for logging
+          CLEAN_CONTENT=$(echo "$CONTENT" | head -c 100)
+          echo "Content snippet: $CLEAN_CONTENT"
+          
           if [[ ! "$CONTENT" =~ "ok" ]]; then
             echo "API content validation failed: 'ok' not found"
             exit 1
@@ -85,18 +89,15 @@ jobs:
           REPO="${{ github.repository }}"
           TARGET_URL="${{ github.event.deployment_status.target_url }}"
           
+          # Create message based on success or failure
           if [ "$HEALTH_SUCCESS" == "success" ]; then
-            CONTENT="✅ **Health Check Passed** for \`$REPO\`\n**URL:** $TARGET_URL\nStatus: 200 OK, Content Validated."
+            MESSAGE="✅ **Health Check Passed** for \`$REPO\`\n**URL:** $TARGET_URL\nStatus: 200 OK, Content Validated."
           else
-            CONTENT="❌ **Health Check Failed** for \`$REPO\`\n**Target URL:** $TARGET_URL\nAction: Check deployment logs immediately."
+            MESSAGE="❌ **Health Check Failed** for \`$REPO\`\n**Target URL:** $TARGET_URL\nAction: Check deployment logs immediately."
           fi
           
-          # Payload creation with escaped quotes
-          PAYLOAD=$(cat <<EOF
-          {
-            "content": "$CONTENT"
-          }
-          EOF
-          )
+          # Use jq to build a safe JSON payload if available, or a robust bash heredoc
+          # Note: Github-hosted runners have 'jq' pre-installed.
+          PAYLOAD=$(jq -n --arg msg "$MESSAGE" '{content: $msg}')
           
           curl -H "Content-Type: application/json" -d "$PAYLOAD" "$DISCORD_WEBHOOK"
