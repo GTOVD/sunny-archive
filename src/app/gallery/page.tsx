@@ -1,55 +1,35 @@
 export default function GalleryPage() {
   const artists = [
     {
-      name: "Artist Name",
-      role: "Lead Character Design",
-      contact: "https://twitter.com/artist",
-      work: "Main VTuber Model & Expression Sheets",
-      image: null
-    },
-    // Placeholder for more artists
+      name: "Placeholder Artist",
+      work: "Main VTuber Model",
+      link: "https://twitter.com",
+      image: "https://grainy-gradients.vercel.app/noise.svg"
+    }
   ];
 
   return (
     <div className="relative min-h-screen pt-32 pb-24 px-6 md:px-12">
-      <header className="max-w-7xl mx-auto mb-20 space-y-4 text-right">
-        <div className="font-cinzel text-[10px] tracking-[0.6em] text-gold uppercase">
-          Visual Contributions
+      <header className="max-w-7xl mx-auto mb-20 space-y-4">
+        <div className="font-cinzel text-[10px] tracking-[0.6em] text-gold uppercase animate-pulse">
+          Exhibition of Creators
         </div>
         <h1 className="text-6xl md:text-8xl font-serif text-white lowercase tracking-tighter">
-          The <span className="gold-text-shimmer italic">Gallery</span>
+          Artistic <span className="gold-text-shimmer italic">Credits</span>
         </h1>
-        <div className="h-px w-32 bg-gold/30 ml-auto mt-8"></div>
-        <p className="max-w-xl text-slate-500 text-sm uppercase tracking-widest leading-relaxed pt-4 ml-auto">
-          A definitive index of the artisans and creators who have shaped 
-          the visual identity of the Sunny Archive.
-        </p>
+        <div className="h-px w-32 bg-gold/30 mt-8"></div>
       </header>
 
-      <div className="max-w-7xl mx-auto space-y-32">
-        {artists.map((artist, idx) => (
-          <div key={idx} className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
-            <div className="luxury-card aspect-video group">
-              <div className="w-full h-full flex items-center justify-center bg-navy-dark border border-gold/10">
-                <span className="font-cinzel text-[10px] text-gold/20 uppercase tracking-widest italic">
-                  Artifact Display Pending
-                </span>
-              </div>
+      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12">
+        {artists.map((artist, i) => (
+          <div key={i} className="luxury-card flex flex-col md:flex-row gap-8 p-8 items-center">
+            <div className="w-32 h-32 rounded-full overflow-hidden border border-gold/20 flex-shrink-0 bg-slate-800">
+               <img src={artist.image} alt={artist.name} className="w-full h-full object-cover opacity-20" />
             </div>
-            
-            <div className="space-y-6">
-              <span className="font-cinzel text-xs text-gold/60 tracking-[0.3em]">0{idx + 1} // {artist.role}</span>
-              <h2 className="text-5xl font-serif text-white uppercase tracking-tight italic">
-                {artist.name}
-              </h2>
-              <p className="text-slate-400 text-sm leading-loose tracking-wide border-l-2 border-gold/20 pl-6">
-                Featured Contribution: {artist.work}
-              </p>
-              <div className="pt-4">
-                <a href={artist.contact} target="_blank" rel="noopener noreferrer" className="editorial-link">
-                  Establish Contact
-                </a>
-              </div>
+            <div className="space-y-4 text-center md:text-left">
+              <h2 className="font-serif text-3xl text-white uppercase">{artist.name}</h2>
+              <p className="text-gold/60 font-cinzel text-[10px] tracking-widest uppercase">{artist.work}</p>
+              <a href={artist.link} target="_blank" className="editorial-link inline-block">Visit Portfolio</a>
             </div>
           </div>
         ))}
