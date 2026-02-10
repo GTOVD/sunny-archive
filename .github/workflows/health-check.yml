@@ -30,59 +30,63 @@ jobs:
             HEADER_ARG="-H \"x-vercel-protection-bypass: $BYPASS_TOKEN\""
           fi
           
-          # Attempt 1: Check status code
-          RESPONSE=$(eval curl -s -o /dev/null -w "%{http_code}" --max-time 10 "$HEADER_ARG" "$HEALTH_URL")
-          
-          if [ "$RESPONSE" != "200" ]; then
-            echo "API health check failed with status $RESPONSE"
+          MAX_RETRIES=5
+          RETRY_COUNT=0
+          SUCCESS=false
+
+          while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+            RETRY_COUNT=$((RETRY_COUNT + 1))
+            echo "Attempt $RETRY_COUNT..."
+            
+            # Attempt 1: Check status code
+            RESPONSE=$(eval curl -s -o /dev/null -w "%{http_code}" --max-time 15 "$HEADER_ARG" "$HEALTH_URL")
+            echo "Check returned status $RESPONSE"
+            
+            if [ "$RESPONSE" == "200" ]; then
+              # Attempt 2: Content validation (Check for 'ok')
+              CONTENT=$(eval curl -s --max-time 15 "$HEADER_ARG" "$HEALTH_URL")
+              
+              if [[ "$CONTENT" =~ "ok" ]]; then
+                echo "API Health: 200 OK"
+                echo "Content validation: Success"
+                SUCCESS=true
+                break
+              else
+                echo "Content validation failed: 'ok' not found"
+              fi
+            fi
+            
+            echo "Attempt $RETRY_COUNT failed. Waiting 10 seconds..."
+            sleep 10
+          done
+
+          if [ "$SUCCESS" = false ]; then
+            echo "Health check failed after $MAX_RETRIES attempts."
             exit 1
           fi
-          echo "API Health: 200 OK"
 
-          # Attempt 2: Content validation (Check for 'ok')
-          CONTENT=$(eval curl -s --max-time 10 "$HEADER_ARG" "$HEALTH_URL")
-          
-          if [[ ! "$CONTENT" =~ "ok" ]]; then
-            echo "API content validation failed: 'ok' not found in response"
-            echo "Response snippet: ${CONTENT:0:100}"
-            exit 1
-          fi
-          echo "Content validation: Success"
-
-      - name: Notify Success
-        if: success() && env.DISCORD_WEBHOOK != ''
+      - name: Notify
+        if: always() && env.DISCORD_WEBHOOK != ''
         uses: actions/github-script@v7
         with:
           script: |
             const discordWebhook = process.env.DISCORD_WEBHOOK;
             const targetUrl = context.payload.deployment_status.target_url;
             const repo = `${context.repo.owner}/${context.repo.repo}`;
+            const success = '${{ steps.smoke_test.outcome }}' === 'success';
             
-            const message = {
-              content: `✅ **Health Check Passed** for \`${repo}\`\n**URL:** ${targetUrl}\nStatus: 200 OK, Content Validated.`,
+            const payload = {
+              embeds: [{
+                title: success ? "✅ Health Check Passed" : "❌ Health Check Failed",
+                color: success ? 3066993 : 15158332,
+                description: success 
+                  ? `**Repo:** \`${repo}\`\n**Status:** 200 OK (Content Verified)\n**URL:** ${targetUrl}`
+                  : `**Repo:** \`${repo}\`\n**Action:** Audit logs for failure.\n**URL:** ${targetUrl}`
+              }]
             };
 
             await fetch(discordWebhook, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(message),
-            });
-
-      - name: Notify Failure
-        if: failure() && env.DISCORD_WEBHOOK != ''
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const discordWebhook = process.env.DISCORD_WEBHOOK;
-            const targetUrl = context.payload.deployment_status.target_url;
-            const repo = `${context.repo.owner}/${context.repo.repo}`;
-            
-            const message = {
-              content: `❌ **Health Check Failed** for \`${repo}\`\n**Target URL:** ${targetUrl}\nAction: Check GitHub Action logs for details.`,
-            };
-
-            await fetch(discordWebhook, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(message),
+              body: JSON.stringify(payload),
             });
