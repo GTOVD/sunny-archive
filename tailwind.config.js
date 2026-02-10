@@ -8,16 +8,27 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        navy: "#0a192f",
-        gold: "#d4af37",
-        "gold-light": "#f1e5ac",
+        gold: {
+          DEFAULT: "#d4af37",
+          bright: "#fbbf24",
+          muted: "#927238",
+        },
+        slate: {
+          950: "#020617",
+        }
       },
       fontFamily: {
-        serif: ["var(--font-serif)", "serif"],
-        sans: ["var(--font-sans)", "sans-serif"],
+        serif: ['var(--font-serif)', 'Playfair Display', 'serif'],
+        cinzel: ['Cinzel', 'serif'],
+        sans: ['Inter', 'sans-serif'],
       },
-      letterSpacing: {
-        widest: "0.25em",
+      animation: {
+        shimmer: 'shimmer 3s linear infinite',
+      },
+      keyframes: {
+        shimmer: {
+          'to': { backgroundPosition: '200% center' },
+        },
       },
     },
   },
