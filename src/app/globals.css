@@ -1,21 +1,29 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
-@layer base {
-  :root {
-    --navy-dark: #020617;
-    --navy: #0f172a;
-    --navy-light: #1e293b;
-    --gold: #d4af37;
-    --gold-muted: #927238;
-    --gold-bright: #fbbf24;
-    --glass: rgba(15, 23, 42, 0.7);
-    --glass-border: rgba(212, 175, 55, 0.2);
+@theme {
+  --color-navy-dark: #020617;
+  --color-navy: #0f172a;
+  --color-navy-light: #1e293b;
+  --color-gold: #d4af37;
+  --color-gold-muted: #927238;
+  --color-gold-bright: #fbbf24;
+
+  @keyframes shimmer {
+    from {
+      background-position: 200% center;
+    }
+    to {
+      background-position: -200% center;
+    }
   }
 
+  --animate-shimmer: shimmer 8s linear infinite;
+}
+
+@layer base {
   body {
-    @apply bg-slate-950 text-slate-200 selection:bg-gold/30 selection:text-gold;
+    background-color: var(--color-slate-950);
+    color: var(--color-slate-200);
     font-family: 'Inter', sans-serif;
     background-image: 
       radial-gradient(circle at 50% 0%, rgba(30, 41, 59, 0.5) 0%, transparent 50%),
@@ -34,12 +42,16 @@
 
 @layer components {
   .luxury-card {
-    @apply relative overflow-hidden bg-slate-900/50 border border-white/5 backdrop-blur-md transition-all duration-500 hover:border-gold/30 group;
+    @apply relative overflow-hidden bg-slate-900/50 border border-white/5 backdrop-blur-md transition-all duration-500 hover:border-gold/30;
   }
   
   .luxury-card::before {
     content: '';
-    @apply absolute inset-0 bg-gradient-to-br from-gold/5 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100;
+    @apply absolute inset-0 bg-gradient-to-br from-gold/5 via-transparent to-transparent opacity-0 transition-opacity duration-500;
+  }
+
+  .luxury-card:hover::before {
+    @apply opacity-100;
   }
 
   .gold-text-shimmer {
