@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import GlobalErrorBoundary from "@/components/GlobalErrorBoundary";
 
 export const metadata: Metadata = {
   title: "The Sunny Archive | Curated Luxury Artifacts",
@@ -46,27 +47,29 @@ export default function RootLayout({
         }}></div>
         
         <main style={{ position: 'relative', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-          <nav style={{
-            position: 'absolute',
-            top: 0,
-            width: '100%',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            padding: '2rem 3rem',
-            zIndex: 40
-          }}>
-            <a href="/" style={{ fontFamily: 'Cinzel, serif', fontSize: '0.75rem', letterSpacing: '0.4em', color: '#d4af37', textDecoration: 'none', fontWeight: 'bold' }}>
-              SUNNY ARCHIVE
-            </a>
-            <div style={{ display: 'flex', gap: '3rem' }}>
-              <a href="/archive" style={{ color: 'white', fontSize: '0.625rem', letterSpacing: '0.2em', textDecoration: 'none', textTransform: 'uppercase' }}>Lore</a>
-              <a href="/gallery" style={{ color: 'white', fontSize: '0.625rem', letterSpacing: '0.2em', textDecoration: 'none', textTransform: 'uppercase' }}>Credits</a>
-              <a href="/treasury" style={{ color: 'white', fontSize: '0.625rem', letterSpacing: '0.2em', textDecoration: 'none', textTransform: 'uppercase' }}>Treasury</a>
-            </div>
-          </nav>
+          <GlobalErrorBoundary>
+            <nav style={{
+              position: 'absolute',
+              top: 0,
+              width: '100%',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              padding: '2rem 3rem',
+              zIndex: 40
+            }}>
+              <a href="/" style={{ fontFamily: 'Cinzel, serif', fontSize: '0.75rem', letterSpacing: '0.4em', color: '#d4af37', textDecoration: 'none', fontWeight: 'bold' }}>
+                SUNNY ARCHIVE
+              </a>
+              <div style={{ display: 'flex', gap: '3rem' }}>
+                <a href="/archive" style={{ color: 'white', fontSize: '0.625rem', letterSpacing: '0.2em', textDecoration: 'none', textTransform: 'uppercase' }}>Lore</a>
+                <a href="/gallery" style={{ color: 'white', fontSize: '0.625rem', letterSpacing: '0.2em', textDecoration: 'none', textTransform: 'uppercase' }}>Credits</a>
+                <a href="/treasury" style={{ color: 'white', fontSize: '0.625rem', letterSpacing: '0.2em', textDecoration: 'none', textTransform: 'uppercase' }}>Treasury</a>
+              </div>
+            </nav>
 
-          {children}
+            {children}
+          </GlobalErrorBoundary>
           
           <footer style={{ marginTop: 'auto', padding: '4rem 2rem', borderTop: '1px solid rgba(255, 255, 255, 0.05)', backgroundColor: 'rgba(2, 6, 23, 0.8)' }}>
             <div style={{ maxWidth: '80rem', margin: '0 auto', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2rem' }}>
