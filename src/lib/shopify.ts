@@ -11,30 +11,66 @@ const client = createStorefrontClient({
 export const getStorefrontApiUrl = client.getStorefrontApiUrl;
 export const getPublicTokenHeaders = client.getPublicTokenHeaders;
 
-async function storefrontFetch(query: string, variables = {}) {
+/**
+ * Core Shopify Storefront API Fetch Wrapper
+ * Implements architectural resilience (timeouts, retries) for distributed edge environments.
+ */
+async function storefrontFetch(
+  query: string,
+  variables = {},
+  options: { timeout?: number; retries?: number } = { timeout: 10000, retries: 3 }
+) {
   // Guard against missing environment variables during build phase
   if (!envVars.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN || !envVars.NEXT_PUBLIC_SHOPIFY_STOREFRONT_API_TOKEN) {
     console.warn("⚠️ Shopify environment variables missing. Returning empty data for build.");
     return { data: null };
   }
 
-  try {
-    const response = await fetch(getStorefrontApiUrl(), {
-      method: "POST",
-      headers: getPublicTokenHeaders(),
-      body: JSON.stringify({ query, variables }),
-    });
+  const { timeout = 10000, retries = 3 } = options;
 
-    if (!response.ok) {
-      console.warn(`⚠️ Shopify API fetch failed with status ${response.status}. Returning empty data.`);
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), timeout);
+
+    try {
+      const response = await fetch(getStorefrontApiUrl(), {
+        method: "POST",
+        headers: getPublicTokenHeaders(),
+        body: JSON.stringify({ query, variables }),
+        signal: controller.signal,
+      });
+
+      clearTimeout(id);
+
+      if (!response.ok) {
+        // Retry on 5xx errors or 429 Rate Limits
+        if ((response.status >= 500 || response.status === 429) && attempt < retries) {
+          console.warn(`⚠️ Shopify API status ${response.status}. Retrying (${attempt + 1}/${retries})...`);
+          await new Promise((resolve) => setTimeout(resolve, 1000 * Math.pow(2, attempt))); // Exponential backoff
+          continue;
+        }
+        console.warn(`⚠️ Shopify API fetch failed with status ${response.status}. Returning empty data.`);
+        return { data: null };
+      }
+
+      return await response.json();
+    } catch (error: any) {
+      clearTimeout(id);
+      
+      const isTimeout = error.name === 'AbortError';
+      
+      if (attempt < retries) {
+        console.warn(`⚠️ Shopify Fetch ${isTimeout ? 'Timeout' : 'Error'}. Retrying (${attempt + 1}/${retries})...`);
+        await new Promise((resolve) => setTimeout(resolve, 1000 * Math.pow(2, attempt)));
+        continue;
+      }
+
+      console.error("❌ Shopify Fetch Error (Supressed for Build):", error);
       return { data: null };
     }
-
-    return response.json();
-  } catch (error) {
-    console.error("❌ Shopify Fetch Error (Supressed for Build):", error);
-    return { data: null };
   }
+
+  return { data: null };
 }
 
 export async function getProducts(limit: number = 10) {
