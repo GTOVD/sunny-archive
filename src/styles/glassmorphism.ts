@@ -1,24 +1,24 @@
 // Glassmorphism effects for 'Luxury Boutique' aesthetic
 export const GLASSMorphism = {
   card: {
-    background: "rgba(15, 23, 42, 0.5)",
-    border: "1px solid rgba(255, 255, 255, 0.05)",
+    background: "rgba(0, 0, 0, 0.6)",
+    border: "1px solid rgba(57, 119, 137, 0.2)", /* Using customer bronze #397789 */
     backdropFilter: "blur(12px)",
     transition: "all 0.5s cubic-bezier(0.16, 1, 0.3, 1)",
     "&:hover": {
-      background: "rgba(15, 23, 42, 0.7)",
-      borderColor: "rgba(212, 175, 55, 0.2)",
+      background: "rgba(57, 17, 25, 0.3)", /* Using customer deep accent #391119 */
+      borderColor: "rgba(57, 119, 137, 0.4)",
       transform: "translateY(-4px)"
     }
   },
   premium: {
-    background: "rgba(15, 23, 42, 0.5)",
-    border: "1px solid rgba(212, 175, 55, 0.1)",
+    background: "rgba(0, 0, 0, 0.6)",
+    border: "1px solid rgba(57, 119, 137, 0.4)",
     backdropFilter: "blur(12px)",
     transition: "all 0.5s cubic-bezier(0.16, 1, 0.3, 1)",
     "&:hover": {
-      background: "rgba(15, 23, 42, 0.7)",
-      borderColor: "rgba(212, 175, 55, 0.3)",
+      background: "rgba(57, 17, 25, 0.4)",
+      borderColor: "rgba(57, 119, 137, 0.6)",
       transform: "translateY(-4px)"
     }
   }
