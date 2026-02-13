@@ -1,0 +1,5 @@
+1:"$Sreact.fragment"
+2:I[88697,["/_next/static/chunks/6eced94c95c995ae.js","/_next/static/chunks/d35a8cad7134b561.js"],"OutletBoundary"]
+3:"$Sreact.suspense"
+0:{"buildId":"4NVK8Ytn8hNd86NjNK7Qr","rsc":["$","$1","c",{"children":[["$","div",null,{"className":"min-h-screen bg-black text-green-500 font-mono p-8","children":["$","div",null,{"className":"max-w-4xl mx-auto border border-green-900 p-4 shadow-[0_0_20px_rgba(0,255,0,0.1)]","children":[["$","header",null,{"className":"mb-8 border-b border-green-900 pb-4","children":[["$","h1",null,{"className":"text-2xl font-bold tracking-tighter","children":"SUNNY ARCHIVE // SACRED LORE TERMINAL"}],["$","p",null,{"className":"text-xs text-green-700","children":"VERSION 2.0.26 // CLEARANCE: UNRESTRICTED"}]]}],["$","main",null,{"children":["$","div",null,{"className":"animate-pulse","children":"_ INITIALIZING NEURAL LINK..."}]}]]}]}],null,["$","$L2",null,{"children":["$","$3",null,{"name":"Next.MetadataOutlet","children":"$@4"}]}]]}],"loading":null,"isPartial":false}
+4:null
