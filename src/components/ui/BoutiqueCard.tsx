@@ -82,19 +82,15 @@ export const BoutiqueCard = ({
             display: 'flex', 
             justifyContent: 'center' 
           }}>
-            <motion.span 
-              whileHover={{ scale: 1.05, color: '#d4af37' }}
-              style={{ 
-                color: 'rgba(212, 175, 55, 0.6)', 
-                textTransform: 'uppercase', 
-                letterSpacing: '0.2em', 
-                fontSize: '0.625rem', 
-                borderBottom: '1px solid rgba(212, 175, 55, 0.3)',
-                paddingBottom: '2px'
-              }}
-            >
+            <span style={{ 
+              color: 'rgba(212, 175, 55, 0.6)', 
+              textTransform: 'uppercase', 
+              letterSpacing: '0.2em', 
+              fontSize: '0.625rem', 
+              borderBottom: '1px solid rgba(212, 175, 55, 0.3)' 
+            }}>
               {cta}
-            </motion.span>
+            </span>
           </div>
         </div>
       </Link>
