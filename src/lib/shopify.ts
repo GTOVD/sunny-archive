@@ -1,6 +1,7 @@
 import { createStorefrontClient } from "@shopify/hydrogen-react";
 import { ShopifyCheckoutSchema, ShopifyProductSchema } from "./schema";
 import { envVars } from "./env";
+import { CircuitBreaker } from "./recovery";
 
 const client = createStorefrontClient({
   storeDomain: envVars.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN || "placeholder.myshopify.com",
@@ -10,6 +11,9 @@ const client = createStorefrontClient({
 
 export const getStorefrontApiUrl = client.getStorefrontApiUrl;
 export const getPublicTokenHeaders = client.getPublicTokenHeaders;
+
+// Initialize Circuit Breaker for Shopify Storefront API
+const shopifyCircuitBreaker = new CircuitBreaker(5, 30000); // 5 failures, 30s cooldown
 
 /**
  * Type-safe result wrapper for API responses.
@@ -21,7 +25,7 @@ export type FetchResult<T> =
 
 /**
  * Core Shopify Storefront API Fetch Wrapper
- * Implements architectural resilience (timeouts, retries) for distributed edge environments.
+ * Implements architectural resilience (timeouts, retries, circuit breakers) for distributed edge environments.
  */
 async function storefrontFetch<T>(
   query: string,
@@ -36,59 +40,67 @@ async function storefrontFetch<T>(
 
   const { timeout = 10000, retries = 3 } = options;
 
-  for (let attempt = 0; attempt <= retries; attempt++) {
-    const controller = new AbortController();
-    const id = setTimeout(() => controller.abort(), timeout);
+  try {
+    return await shopifyCircuitBreaker.execute(async () => {
+      for (let attempt = 0; attempt <= retries; attempt++) {
+        const controller = new AbortController();
+        const id = setTimeout(() => controller.abort(), timeout);
 
-    try {
-      const response = await fetch(getStorefrontApiUrl(), {
-        method: "POST",
-        headers: getPublicTokenHeaders(),
-        body: JSON.stringify({ query, variables }),
-        signal: controller.signal,
-      });
+        try {
+          const response = await fetch(getStorefrontApiUrl(), {
+            method: "POST",
+            headers: getPublicTokenHeaders(),
+            body: JSON.stringify({ query, variables }),
+            signal: controller.signal,
+          });
 
-      clearTimeout(id);
+          clearTimeout(id);
 
-      if (!response.ok) {
-        const status = response.status;
-        // Retry on 5xx errors or 429 Rate Limits
-        if ((status >= 500 || status === 429) && attempt < retries) {
-          const delay = 1000 * Math.pow(2, attempt);
-          console.warn(`⚠️ Shopify API status ${status}. Retrying in ${delay}ms (${attempt + 1}/${retries})...`);
-          await new Promise((resolve) => setTimeout(resolve, delay));
-          continue;
+          if (!response.ok) {
+            const status = response.status;
+            // Retry on 5xx errors or 429 Rate Limits
+            if ((status >= 500 || status === 429) && attempt < retries) {
+              const delay = 1000 * Math.pow(2, attempt);
+              console.warn(`⚠️ Shopify API status ${status}. Retrying in ${delay}ms (${attempt + 1}/${retries})...`);
+              await new Promise((resolve) => setTimeout(resolve, delay));
+              continue;
+            }
+            // Non-retryable error
+            throw new Error(`Shopify API status ${status}`);
+          }
+
+          const json = await response.json();
+          
+          if (json.errors) {
+            throw new Error(json.errors[0]?.message || "GraphQL Error");
+          }
+
+          return { data: json.data as T, error: null, ok: true };
+
+        } catch (error: any) {
+          clearTimeout(id);
+          
+          const isTimeout = error.name === 'AbortError';
+          const errorMessage = isTimeout ? 'Request timeout' : (error.message || 'Unknown network error');
+          
+          if (attempt < retries) {
+            const delay = 1000 * Math.pow(2, attempt);
+            console.warn(`⚠️ Shopify Fetch ${isTimeout ? 'Timeout' : 'Error'}. Retrying in ${delay}ms (${attempt + 1}/${retries})...`);
+            await new Promise((resolve) => setTimeout(resolve, delay));
+            continue;
+          }
+
+          // If we exhausted retries, throw to trigger circuit breaker handleFailure
+          throw new Error(errorMessage);
         }
-        return { data: null, error: `Shopify API status ${status}`, ok: false };
       }
 
-      const json = await response.json();
-      
-      if (json.errors) {
-        return { data: null, error: json.errors[0]?.message || "GraphQL Error", ok: false };
-      }
-
-      return { data: json.data as T, error: null, ok: true };
-
-    } catch (error: any) {
-      clearTimeout(id);
-      
-      const isTimeout = error.name === 'AbortError';
-      const errorMessage = isTimeout ? 'Request timeout' : (error.message || 'Unknown network error');
-      
-      if (attempt < retries) {
-        const delay = 1000 * Math.pow(2, attempt);
-        console.warn(`⚠️ Shopify Fetch ${isTimeout ? 'Timeout' : 'Error'}. Retrying in ${delay}ms (${attempt + 1}/${retries})...`);
-        await new Promise((resolve) => setTimeout(resolve, delay));
-        continue;
-      }
-
-      console.error("❌ Shopify Fetch Error (Supressed for Build):", errorMessage);
-      return { data: null, error: errorMessage, ok: false };
-    }
+      throw new Error("Exceeded maximum retry attempts");
+    });
+  } catch (error: any) {
+    console.error("❌ Shopify Fetch Failure:", error.message);
+    return { data: null, error: error.message, ok: false };
   }
-
-  return { data: null, error: "Exceeded maximum retry attempts", ok: false };
 }
 
 export async function getProducts(limit: number = 10) {
