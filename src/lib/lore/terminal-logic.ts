@@ -61,8 +61,10 @@ export const processCommand = (input: string): string => {
         "  HELP           - Show this menu",
         "  LIST           - List all accessible lore nodes",
         "  READ <ID>      - Display the contents of a lore node",
+        "  SYSTEM         - Show system status and clearance",
+        "  CREDITS        - Show archive credits",
         "  CLEAR          - Clear the terminal history",
-        "  SYSTEM         - Show system status and clearance"
+        "  EXIT           - Terminate current uplink"
       ].join('\n');
     
     case 'LIST':
@@ -106,6 +108,19 @@ export const processCommand = (input: string): string => {
 
     case 'CLEAR':
       return "CLEARING...";
+    
+    case 'EXIT':
+      return "TERMINATING UPLINK... [SESSION ENDED]";
+    
+    case 'CREDITS':
+      return [
+        "ARCHIVE ARCHITECTS:",
+        "  GTOVD / THOMAS VICKERS - Lead Developer",
+        "  ZOWN - Strategic Symbiote",
+        "  CLAW - Autonomous Agent Protocol",
+        "",
+        "ESTABLISHED 2026. ALL RIGHTS RESERVED."
+      ].join('\n');
     
     default:
       return `UNKNOWN COMMAND: '${input}'. TYPE 'HELP' FOR ASSISTANCE.`;

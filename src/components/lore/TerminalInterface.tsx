@@ -45,6 +45,11 @@ export const TerminalInterface: React.FC = () => {
 
     setHistory((prev) => [...prev, newCommand]);
     setInput('');
+
+    // Handle command-specific client-side side effects
+    if (input.trim().toUpperCase() === 'CLEAR') {
+      setTimeout(() => setHistory([]), 500);
+    }
   };
 
   if (!isBooted) {
