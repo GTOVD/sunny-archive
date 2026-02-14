@@ -188,3 +188,56 @@ export async function createCheckout(variantId: string) {
   const validated = ShopifyCheckoutSchema.parse(data.checkoutCreate.checkout);
   return validated.webUrl;
 }
+
+export async function getProductByHandle(handle: string) {
+  const query = `
+    query getProductByHandle($handle: String!) {
+      product(handle: $handle) {
+        id
+        title
+        handle
+        description
+        descriptionHtml
+        images(first: 5) {
+          nodes {
+            url
+            altText
+            width
+            height
+          }
+        }
+        priceRange {
+          minVariantPrice {
+            amount
+            currencyCode
+          }
+        }
+        variants(first: 5) {
+          nodes {
+            id
+            title
+            availableForSale
+            price {
+              amount
+              currencyCode
+            }
+          }
+        }
+      }
+    }
+  `;
+
+  const { data, error, ok } = await storefrontFetch<{ product: any }>(query, { handle });
+
+  if (!ok) {
+    console.warn(`⚠️ Shopify API Errors: ${error}`);
+    return null;
+  }
+
+  if (!data?.product) {
+    return null;
+  }
+
+  // Note: We might need to adjust ShopifyProductSchema if it doesn't include descriptionHtml or multiple images
+  return data.product;
+}
