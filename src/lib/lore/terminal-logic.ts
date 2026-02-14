@@ -89,11 +89,20 @@ export const processCommand = (input: string): string => {
 
     case 'SYSTEM':
       return [
-        "STATUS: ONLINE",
-        "ENCRYPTION: AES-256 GCM",
+        "SYSTEM STATUS: OPTIMAL",
+        "ENCRYPTION: AES-256 GCM [ACTIVE]",
         "USER_CLEARANCE: RESEARCHER (LEVEL 2)",
-        "CONNECTION: SECURE"
+        "ACTIVE LINK: NEURAL-01",
+        "DATABASE INTEGRITY: 100%",
+        "CURRENT DATE: " + new Date().toISOString()
       ].join('\n');
+
+    case 'DECRYPT':
+      if (args.length === 0) return "ERROR: DECRYPT REQUIRES A MANUSCRIPT ID.";
+      return `INITIALIZING DECRYPTION SEQUENCE FOR '${args[0].toUpperCase()}'...\n[PROGRESS: ##########] 100%\nDECRYPTION FAILED: INSUFFICIENT CLEARANCE.`;
+
+    case 'SCAN':
+      return "SCANNING FOR NEARBY ARTIFACTS...\n[RECORDS FOUND: 42]\n[CRITICAL SIGNATURES DETECTED: 2]\nUSE 'LIST' TO VIEW UNRESTRICTED RECORDS.";
 
     case 'CLEAR':
       return "CLEARING...";
