@@ -1,0 +1,13 @@
+{
+  "/_global-error/page": "app/_global-error/page.js",
+  "/_not-found/page": "app/_not-found/page.js",
+  "/api/health/route": "app/api/health/route.js",
+  "/api/webhooks/shopify/route": "app/api/webhooks/shopify/route.js",
+  "/archive/page": "app/archive/page.js",
+  "/favicon.ico/route": "app/favicon.ico/route.js",
+  "/gallery/page": "app/gallery/page.js",
+  "/lore/page": "app/lore/page.js",
+  "/page": "app/page.js",
+  "/treasury/[id]/page": "app/treasury/[id]/page.js",
+  "/treasury/page": "app/treasury/page.js"
+}

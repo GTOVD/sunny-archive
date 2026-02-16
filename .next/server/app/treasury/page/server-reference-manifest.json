@@ -1,0 +1,20 @@
+{
+  "node": {
+    "40be42893be012fba56596247f5e54e4667e41e80c": {
+      "workers": {
+        "app/treasury/page": {
+          "moduleId": 78098,
+          "async": false,
+          "exportedName": "$$RSC_SERVER_ACTION_0",
+          "filename": "sunny-archive/src/app/treasury/page.tsx"
+        }
+      },
+      "layer": {
+        "app/treasury/page": "rsc"
+      },
+      "exportedName": "$$RSC_SERVER_ACTION_0",
+      "filename": "sunny-archive/src/app/treasury/page.tsx"
+    }
+  },
+  "edge": {}
+}

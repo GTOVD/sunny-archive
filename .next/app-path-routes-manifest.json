@@ -1,0 +1,13 @@
+{
+  "/_global-error/page": "/_global-error",
+  "/_not-found/page": "/_not-found",
+  "/api/health/route": "/api/health",
+  "/api/webhooks/shopify/route": "/api/webhooks/shopify",
+  "/archive/page": "/archive",
+  "/favicon.ico/route": "/favicon.ico",
+  "/gallery/page": "/gallery",
+  "/lore/page": "/lore",
+  "/page": "/",
+  "/treasury/[id]/page": "/treasury/[id]",
+  "/treasury/page": "/treasury"
+}
