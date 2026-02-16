@@ -45,6 +45,7 @@ export const ShopifyProductSchema = z.object({
   title: z.string(),
   handle: z.string(),
   description: z.string(),
+  descriptionHtml: z.string().optional(),
   images: z.object({
     nodes: z.array(ShopifyImageSchema),
   }),
@@ -55,6 +56,8 @@ export const ShopifyProductSchema = z.object({
     nodes: z.array(z.object({
       id: z.string(),
       title: z.string(),
+      availableForSale: z.boolean().optional(),
+      price: ShopifyPriceSchema.optional(),
     })),
   }),
 });

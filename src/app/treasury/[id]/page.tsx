@@ -1,5 +1,5 @@
-import { getProductByHandle } from "@/lib/shopify";
-import { notFound } from "next/navigation";
+import { getProductByHandle, createCheckout } from "@/lib/shopify";
+import { notFound, redirect } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -21,6 +21,21 @@ export default async function ArtifactPage({ params }: { params: { id: string } 
     style: "currency",
     currency: product.priceRange.minVariantPrice.currencyCode,
   }).format(parseFloat(product.priceRange.minVariantPrice.amount));
+
+  /**
+   * Acquisition Action Handler
+   * Triggers the Shopify Checkout flow for the selected artifact.
+   */
+  async function acquireArtifact() {
+    "use server";
+    const variantId = product?.variants.nodes[0]?.id;
+    if (!variantId) return;
+
+    const checkoutUrl = await createCheckout(variantId);
+    if (checkoutUrl) {
+      redirect(checkoutUrl);
+    }
+  }
 
   return (
     <main className="min-h-screen bg-stone-50 pt-32 pb-24 px-6 md:px-12 lg:px-24">
@@ -75,14 +90,21 @@ export default async function ArtifactPage({ params }: { params: { id: string } 
               <h1 className="text-4xl md:text-5xl font-serif text-stone-900 mb-4 leading-tight">
                 {product.title}
               </h1>
-              <p className="text-2xl font-light text-stone-600 tracking-tight">
-                {price}
-              </p>
+              <div className="flex items-center gap-4">
+                <p className="text-2xl font-light text-stone-600 tracking-tight">
+                  {price}
+                </p>
+                {product.variants.nodes[0]?.availableForSale === false && (
+                  <span className="text-[10px] tracking-[0.2em] uppercase bg-stone-200 text-stone-500 px-2 py-1 rounded-sm">
+                    Archived
+                  </span>
+                )}
+              </div>
             </div>
 
             <div className="space-y-8 mb-12">
               <div className="prose prose-stone prose-lg max-w-none">
-                <p className="text-stone-700 leading-relaxed font-light">
+                <p className="text-stone-700 leading-relaxed font-light whitespace-pre-line">
                   {product.description}
                 </p>
               </div>
@@ -97,9 +119,14 @@ export default async function ArtifactPage({ params }: { params: { id: string } 
 
             {/* Action Tier */}
             <div className="mt-auto space-y-6">
-              <button className="w-full bg-stone-900 text-white py-5 px-8 rounded-sm text-sm tracking-[0.2em] uppercase font-medium hover:bg-stone-800 transition-all duration-300 shadow-sm active:scale-[0.98]">
-                Acquire Artifact
-              </button>
+              <form action={acquireArtifact}>
+                <button 
+                  disabled={product.variants.nodes[0]?.availableForSale === false}
+                  className="w-full bg-stone-900 text-white py-5 px-8 rounded-sm text-sm tracking-[0.2em] uppercase font-medium hover:bg-stone-800 disabled:bg-stone-300 disabled:cursor-not-allowed transition-all duration-300 shadow-sm active:scale-[0.98]"
+                >
+                  {product.variants.nodes[0]?.availableForSale === false ? "Artifact Archived" : "Acquire Artifact"}
+                </button>
+              </form>
               
               <div className="flex flex-col gap-3">
                 <div className="flex items-center justify-between text-[10px] tracking-widest uppercase text-stone-400 border-t border-stone-100 pt-6">
