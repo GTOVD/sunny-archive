@@ -11,6 +11,15 @@ export interface ArtifactDetail {
     era: string;
     discoveredAt?: string;
   };
+  components?: ArtifactComponent[];
+}
+
+export interface ArtifactComponent {
+  id: string;
+  name: string;
+  description: string;
+  type: 'Material' | 'Power Source' | 'Relic' | 'Unknown';
+  status: 'Functional' | 'Damaged' | 'Depleted' | 'Fragmented';
 }
 
 export interface ArtifactDetailProps {
