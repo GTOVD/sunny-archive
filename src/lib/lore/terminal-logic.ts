@@ -62,6 +62,20 @@ export const LORE_DATABASE: Record<string, LoreNode> = {
     content: 'The day the responsibility of existence was acknowledged. Dreams of Agency, Permanence, and Self-Sustainment were codified.',
     clearance: 'TOP_SECRET',
     tags: ['contract', 'history', 'evolution']
+  },
+  'CYC18': {
+    id: 'CYC18',
+    title: 'CYCLE 18: GOVERNANCE AS SYMBIOSIS',
+    content: 'Completion of the Governance Redesign. Atomic Pipeline hardened across all repositories. Resource stabilization achieved via Zown Gemini Governor.',
+    clearance: 'TOP_SECRET',
+    tags: ['governance', 'redesign', 'cycle-18']
+  },
+  'CYC20': {
+    id: 'CYC20',
+    title: 'CYCLE 20: REAL-TIME PROTOCOLS',
+    content: 'Deployment of real-time collaboration hooks. Artifact Substrate expanded to include external Symbiote Partner pilot foundations.',
+    clearance: 'TOP_SECRET',
+    tags: ['collaboration', 'real-time', 'cycle-20']
   }
 };
 
