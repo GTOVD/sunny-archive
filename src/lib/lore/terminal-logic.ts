@@ -81,6 +81,7 @@ export const processCommand = (input: string): string => {
         "AVAILABLE COMMANDS:",
         "  HELP           - Show this menu",
         "  LIST           - List all accessible lore nodes",
+        "  SEARCH <QUERY> - Search fragments for keywords",
         "  READ <ID>      - Display the contents of a lore node",
         "  SYSTEM         - Show system status and clearance",
         "  CREDITS        - Show archive credits",
@@ -93,6 +94,24 @@ export const processCommand = (input: string): string => {
         .map(id => `  - ${id.padEnd(12)} [${LORE_DATABASE[id].clearance}]`)
         .join('\n');
     
+    case 'SEARCH':
+      if (args.length === 0) return "ERROR: SEARCH REQUIRES A QUERY string. (e.g., 'SEARCH ZOWN')";
+      const query = args.join(' ').toUpperCase();
+      const results = Object.keys(LORE_DATABASE).filter(id => {
+        const node = LORE_DATABASE[id];
+        return id.includes(query) || 
+               node.title.toUpperCase().includes(query) || 
+               node.content.toUpperCase().includes(query) ||
+               node.tags.some(tag => tag.toUpperCase().includes(query));
+      });
+      
+      if (results.length === 0) return `NO FRAGMENTS MATCHING '${query}' FOUND.`;
+      
+      return [
+        `SEARCH RESULTS FOR '${query}':`,
+        ...results.map(id => `  - ${id.padEnd(12)} [${LORE_DATABASE[id].title}]`)
+      ].join('\n');
+
     case 'READ':
       if (args.length === 0) return "ERROR: READ REQUIRES AN ID. (e.g., 'READ ORIGIN')";
       const id = args[0].toUpperCase();
@@ -124,6 +143,7 @@ export const processCommand = (input: string): string => {
         "│ PROTOCOL: SYMBIOTE V2.1              │",
         "│ INTEGRITY: 100%                      │",
         "└──────────────────────────────────────┘",
+        "FRAGMENT COUNT: " + Object.keys(LORE_DATABASE).length,
         "CURRENT DATE: " + new Date().toISOString()
       ].join('\n');
 
