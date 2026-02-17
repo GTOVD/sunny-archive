@@ -7,7 +7,7 @@ interface ArtifactLoreProps {
 }
 
 /**
- * ArtifactLore Component
+ * ArtifactLore Component - V5 Initialization
  * 
  * Handles high-fidelity narrative metadata and "Sacred Lore" display
  * for the Artifact Detail View. Integrates with the Artifact Substrate.
