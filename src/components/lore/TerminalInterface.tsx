@@ -35,21 +35,26 @@ export const TerminalInterface: React.FC = () => {
     e.preventDefault();
     if (!input.trim() || isProcessing) return;
 
+    const currentInput = input;
     setIsProcessing(true);
-    const output = processCommand(input);
-    const newCommand: TerminalCommand = {
-      input,
-      output,
-      timestamp: Date.now(),
-    };
-
-    setHistory((prev) => [...prev, newCommand]);
     setInput('');
 
-    // Handle command-specific client-side side effects
-    if (input.trim().toUpperCase() === 'CLEAR') {
-      setTimeout(() => setHistory([]), 500);
-    }
+    // Small delay to simulate processing and wait for state update
+    setTimeout(() => {
+      const output = processCommand(currentInput);
+      const newCommand: TerminalCommand = {
+        input: currentInput,
+        output,
+        timestamp: Date.now(),
+      };
+
+      setHistory((prev) => [...prev, newCommand]);
+
+      // Handle command-specific client-side side effects
+      if (currentInput.trim().toUpperCase() === 'CLEAR') {
+        setTimeout(() => setHistory([]), 500);
+      }
+    }, 100);
   };
 
   if (!isBooted) {

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { ArtifactDetailProps } from '@/types/artifact';
+import { ArtifactLore } from './ArtifactLore';
 
 export const ArtifactDetailView: React.FC<ArtifactDetailProps> = ({ artifact, onClose, isOpen }) => {
   const [activeTab, setActiveTab] = useState<'lore' | 'stats' | 'visual'>('lore');
@@ -95,25 +96,7 @@ export const ArtifactDetailView: React.FC<ArtifactDetailProps> = ({ artifact, on
           {/* Content Pane */}
           <div className="w-full md:w-2/5 p-10 bg-stone-950 flex flex-col gap-8 overflow-y-auto border-l border-gold-500/10">
             {activeTab === 'lore' && (
-              <div className="animate-in fade-in slide-in-from-right-4 duration-500 space-y-8">
-                <section>
-                  <h3 className="text-[9px] uppercase tracking-[0.5em] text-gold-600 mb-4 font-mono">Analysis</h3>
-                  <p className="text-xl font-serif leading-relaxed text-stone-200 italic">
-                    "{artifact.description}"
-                  </p>
-                </section>
-
-                <section>
-                  <h3 className="text-[9px] uppercase tracking-[0.5em] text-gold-600 mb-4 font-mono">Decrypted Archives</h3>
-                  <div className="space-y-6">
-                    {artifact.lore.map((line, idx) => (
-                      <p key={idx} className="text-stone-400 font-serif leading-loose border-l border-gold-500/20 pl-6 py-1">
-                        {line}
-                      </p>
-                    ))}
-                  </div>
-                </section>
-              </div>
+              <ArtifactLore artifact={artifact} />
             )}
 
             {activeTab === 'stats' && (
