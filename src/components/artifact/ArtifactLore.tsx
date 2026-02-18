@@ -8,7 +8,7 @@ interface ArtifactLoreProps {
 }
 
 /**
- * ArtifactLore Component - V10 implementation (Active Cycle 36/37)
+ * ArtifactLore Component - V11 implementation (Active Cycle 39/40)
  * 
  * High-fidelity narrative component for the Luxury Boutique Artifact Substrate.
  * Handles primary analysis, deep lore decryption, and provenance verification.
