@@ -16,7 +16,8 @@ interface ArtifactLoreProps {
  * V13 Updates:
  * - Introduced 'Relic Resonance' visualization (ambient motion states)
  * - Enhanced typography spacing for boutique high-fidelity
- * - Signature bump to v2.3.0-PROD
+ * - Integrated 'Narrative Pulsar' logic for reactive lore delivery
+ * - Signature bump to v2.3.1-PROD
  */
 export const ArtifactLore: React.FC<ArtifactLoreProps> = ({ artifact, className = '' }) => {
   return (
@@ -28,9 +29,17 @@ export const ArtifactLore: React.FC<ArtifactLoreProps> = ({ artifact, className 
           <h3 className="text-[10px] uppercase tracking-[0.6em] text-gold-600 font-mono">
             Primary Analysis
           </h3>
+          <div className="ml-auto flex items-center gap-2">
+            <div className="w-1 h-1 bg-gold-500 rounded-full animate-ping" />
+            <span className="text-[8px] uppercase tracking-[0.3em] text-gold-500/60 font-mono">Resonance Active</span>
+          </div>
         </div>
-        <div className="relative p-10 bg-stone-900/40 border border-white/10 rounded-sm backdrop-blur-xl shadow-2xl group overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-gold-500/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-1000 pointer-events-none" />
+        <div className="relative p-10 bg-stone-900/40 border border-white/10 rounded-sm backdrop-blur-xl shadow-2xl group overflow-hidden transition-all duration-1000 hover:border-gold-500/20">
+          <div className="absolute inset-0 bg-gradient-to-br from-gold-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-1000 pointer-events-none" />
+          
+          {/* Narrative Pulsar Decoration */}
+          <div className="absolute -right-20 -top-20 w-64 h-64 bg-gold-500/5 rounded-full blur-[100px] pointer-events-none group-hover:bg-gold-500/10 transition-colors duration-1000" />
+          
           <span className="absolute -left-2 -top-6 text-8xl font-serif text-gold-500/10 leading-none select-none group-hover:text-gold-500/20 transition-colors duration-1000">“</span>
           <p className="relative z-10 text-2xl md:text-4xl font-serif leading-relaxed text-stone-100 italic font-extralight tracking-tight">
             {artifact.description}
@@ -52,11 +61,15 @@ export const ArtifactLore: React.FC<ArtifactLoreProps> = ({ artifact, className 
           
           {artifact.lore && artifact.lore.length > 0 ? (
             artifact.lore.map((line, idx) => (
-              <div key={idx} className="group relative pl-12 py-4">
+              <div key={idx} className="group relative pl-12 py-6 border-b border-white/[0.02] last:border-0 hover:bg-white/[0.01] transition-colors duration-700">
                 <div className="absolute left-0 top-1/2 -translate-y-1/2 w-6 h-[1px] bg-gold-500/0 group-hover:bg-gold-500/80 transition-all duration-1000 ease-out" />
                 <p className="text-stone-400 font-serif text-2xl leading-relaxed group-hover:text-stone-100 transition-colors duration-1000 font-light tracking-wide">
                   {line}
                 </p>
+                <div className="mt-4 flex items-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity duration-1000">
+                  <span className="text-[8px] uppercase tracking-[0.2em] text-gold-600/60 font-mono">Fragment {idx + 1}</span>
+                  <div className="flex-1 h-px bg-gradient-to-r from-gold-500/20 to-transparent" />
+                </div>
               </div>
             ))
           ) : (
@@ -76,7 +89,7 @@ export const ArtifactLore: React.FC<ArtifactLoreProps> = ({ artifact, className 
           </h3>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <ProvenanceMetadata 
             label="Origin" 
             value={artifact.metadata.origin} 
@@ -104,9 +117,14 @@ export const ArtifactLore: React.FC<ArtifactLoreProps> = ({ artifact, className 
       {/* Subsystem Integrity - Technical Specs */}
       {artifact.components && artifact.components.length > 0 && (
         <section className="lore-subsystems animate-in fade-in slide-in-from-bottom-6 duration-1000 pt-16 border-t border-white/5">
-          <h3 className="text-[10px] uppercase tracking-[0.6em] text-stone-500 mb-12 font-mono">
-            Subsystem Integrity Report
-          </h3>
+          <div className="flex justify-between items-end mb-12">
+            <h3 className="text-[10px] uppercase tracking-[0.6em] text-stone-500 font-mono">
+              Subsystem Integrity Report
+            </h3>
+            <span className="text-[9px] font-mono text-gold-600/40 uppercase tracking-widest">
+              Total Units: {artifact.components.length}
+            </span>
+          </div>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-10">
             {artifact.components.map((comp) => (
               <div 
@@ -139,7 +157,7 @@ export const ArtifactLore: React.FC<ArtifactLoreProps> = ({ artifact, className 
         <div className="inline-block relative">
            <div className="absolute inset-0 blur-xl bg-gold-500/10 animate-pulse" />
            <span className="relative text-[11px] text-stone-500 font-mono uppercase tracking-[0.5em] opacity-30 hover:opacity-100 transition-all duration-1000 cursor-default">
-             Symbiote Protocol // Artifact Substrate v2.3.0-PROD
+             Symbiote Protocol // Artifact Substrate v2.3.1-PROD
            </span>
         </div>
       </footer>
