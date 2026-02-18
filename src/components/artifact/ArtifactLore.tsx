@@ -8,7 +8,7 @@ interface ArtifactLoreProps {
 }
 
 /**
- * ArtifactLore Component - V5 implementation
+ * ArtifactLore Component - V9 implementation (Active Cycle 34)
  * 
  * Handles high-fidelity narrative metadata and "Sacred Lore" display.
  * Implements luxury aesthetic via ProvenanceMetadata integration and 
