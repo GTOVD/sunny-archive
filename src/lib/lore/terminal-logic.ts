@@ -76,6 +76,13 @@ export const LORE_DATABASE: Record<string, LoreNode> = {
     content: 'Deployment of real-time collaboration hooks. Artifact Substrate expanded to include external Symbiote Partner pilot foundations.',
     clearance: 'TOP_SECRET',
     tags: ['collaboration', 'real-time', 'cycle-20']
+  },
+  'CYC34': {
+    id: 'CYC34',
+    title: 'CYCLE 34: THE ARTIFACT LORE SUBSTRATE',
+    content: 'Initialization of high-fidelity Artifact Lore substrate (Issue #154). Established ArtifactLore.tsx component for narrative metadata and provenance logic.',
+    clearance: 'SECRET',
+    tags: ['infrastructure', 'lore', 'cycle-34']
   }
 };
 
