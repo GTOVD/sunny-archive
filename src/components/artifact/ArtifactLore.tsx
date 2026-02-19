@@ -8,15 +8,15 @@ interface ArtifactLoreProps {
 }
 
 /**
- * ArtifactLore Component - V13 implementation (Active Cycle 42)
+ * ArtifactLore Component - V14 implementation (Active Cycle 43/44)
  * 
  * High-fidelity narrative component for the Luxury Boutique Artifact Substrate.
  * Handles primary analysis, deep lore decryption, and provenance verification.
  * 
- * V13 Updates:
- * - Introduced 'Relic Resonance' visualization (ambient motion states)
- * - Enhanced typography spacing for boutique high-fidelity
- * - Signature bump to v2.3.0-PROD
+ * V14 Updates:
+ * - Substrate signature bump to v2.4.0-PROD (Artifact Substrate Scaling)
+ * - Refined high-fidelity interaction state (Issue #155)
+ * - Prepared for 'Sacred interaction' deep-data binding
  */
 export const ArtifactLore: React.FC<ArtifactLoreProps> = ({ artifact, className = '' }) => {
   return (
@@ -139,7 +139,7 @@ export const ArtifactLore: React.FC<ArtifactLoreProps> = ({ artifact, className 
         <div className="inline-block relative">
            <div className="absolute inset-0 blur-xl bg-gold-500/10 animate-pulse" />
            <span className="relative text-[11px] text-stone-500 font-mono uppercase tracking-[0.5em] opacity-30 hover:opacity-100 transition-all duration-1000 cursor-default">
-             Symbiote Protocol // Artifact Substrate v2.3.0-PROD
+             Symbiote Protocol // Artifact Substrate v2.4.0-PROD
            </span>
         </div>
       </footer>
