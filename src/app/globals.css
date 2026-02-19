@@ -1,10 +1,14 @@
 @import "tailwindcss";
 
 @theme {
-  --color-navy-dark: #020617;
+  --color-archive-black: #000000;
+  --color-archive-gold: #397789;
+  --color-archive-grey: #391119;
+  
+  --color-navy-dark: var(--color-archive-black);
   --color-navy: #0f172a;
   --color-navy-light: #1e293b;
-  --color-gold: #d4af37;
+  --color-gold: var(--color-archive-gold);
   --color-gold-muted: #927238;
   --color-gold-bright: #fbbf24;
 
@@ -22,8 +26,8 @@
 
 @layer base {
   body {
-    background-color: var(--color-slate-950);
-    color: var(--color-slate-200);
+    background-color: var(--color-archive-black);
+    color: var(--color-archive-grey);
     font-family: 'Inter', sans-serif;
     background-image: 
       radial-gradient(circle at 50% 0%, rgba(30, 41, 59, 0.5) 0%, transparent 50%),
@@ -42,7 +46,7 @@
 
 @layer components {
   .luxury-card {
-    @apply relative overflow-hidden bg-slate-900/50 border border-white/5 backdrop-blur-md transition-all duration-500 hover:border-gold/30;
+    @apply relative overflow-hidden bg-archive-grey/20 border border-archive-gold/10 backdrop-blur-md transition-all duration-500 hover:border-archive-gold/30;
   }
   
   .luxury-card::before {
