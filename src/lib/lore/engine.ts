@@ -35,6 +35,7 @@ export class LoreEngine {
           this.createLine('system', 'AVAILABLE COMMANDS:'),
           this.createLine('output', 'LIST - Display all accessible lore fragments'),
           this.createLine('output', 'READ <id> - Decrypt and display a specific entry'),
+          this.createLine('output', 'RESONATE <id> - Attune to a relic pattern'),
           this.createLine('output', 'CLEAR - Purge terminal buffer'),
           this.createLine('output', 'WHOAMI - Display current authorization level'),
           this.createLine('system', 'END OF HELP.')
@@ -68,6 +69,30 @@ export class LoreEngine {
           this.createLine('output', `USER: ${state.currentUser || 'GUEST'}`),
           this.createLine('output', `CLEARANCE: ${state.currentUser === 'admin' ? 'LEVEL 2' : 'LEVEL 1'}`)
         ];
+
+      case 'resonate':
+        if (args.length === 0) {
+          return [this.createLine('error', 'USAGE: RESONATE <id>')];
+        }
+        const resonanceEntry = this.entries.find(e => e.id.toLowerCase() === args[0].toLowerCase());
+        if (!resonanceEntry) {
+          return [this.createLine('error', `PATTERN [${args[0]}] NOT FOUND.`)];
+        }
+        if (!resonanceEntry.resonanceType) {
+          return [this.createLine('error', `FRAGMENT [${args[0]}] DOES NOT SUPPORT RESONANCE.`)];
+        }
+
+        // Logic for triggering resonance and narrative continuity
+        const result: TerminalLine[] = [
+          this.createLine('system', `ATTUNING TO PATTERN: ${resonanceEntry.id}...`),
+          this.createLine('resonance', `RESONANCE ESTABLISHED: ${resonanceEntry.resonanceType}`)
+        ];
+
+        if (resonanceEntry.triggers && resonanceEntry.triggers.length > 0) {
+          result.push(this.createLine('system', `NARRATIVE TRIGGERS UNLOCKED: ${resonanceEntry.triggers.join(', ')}`));
+        }
+
+        return result;
 
       default:
         return [this.createLine('error', `UNKNOWN COMMAND: ${cmd}. TYPE 'HELP' FOR LIST.`)];
