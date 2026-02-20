@@ -9,6 +9,11 @@ export interface TerminalLoreEntry {
     origin?: string;
     classification?: string;
     clearance?: number;
+    resonance?: {
+      frequency: string;
+      stability: number;
+      pattern: string;
+    };
   };
 }
 
