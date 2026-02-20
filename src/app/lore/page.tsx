@@ -1,12 +1,56 @@
-import React from 'react';
+'use client';
+
+import React, { useState, useEffect } from 'react';
 import TerminalInterface from '@/components/lore/TerminalInterface';
+import TerminalGrid from '@/components/lore/TerminalGrid';
+import AccessDenied from '@/components/lore/AccessDenied';
+import { useHackingGame } from '@/hooks/useHackingGame';
 
 /**
  * Lore Page - The Sacred Vault / Interactive Terminal
  * A high-fidelity, interactive terminal for exploring the Sunny Archive lore.
  * Implementation follows 'Luxury Boutique' aesthetic with a retro phosphor feel.
+ * Dec 2026 Update: Gated behind Fallout-style hacking mini-game.
  */
 export default function LorePage() {
+  const [isUnlocked, setIsUnlocked] = useState(false);
+  
+  // Mock word list for the hacking game - will be expanded in Cycle 58
+  const wordList = [
+    'VAULT', 'LORE', 'NEXUS', 'VOID', 'GTOVD', 'SUNNY', 'SYNC', 'ARCH',
+    'SYMBIO', 'PROTO', 'CORE', 'BOND', 'PULSE', 'GRID', 'LINK', 'GATED'
+  ];
+
+  const {
+    displayWords,
+    attemptsRemaining,
+    status,
+    logs,
+    initGame,
+    selectWord
+  } = useHackingGame({ 
+    difficulty: 'medium', 
+    wordList 
+  });
+
+  // Initialize game on mount
+  useEffect(() => {
+    initGame();
+  }, [initGame]);
+
+  // Sync unlock state
+  useEffect(() => {
+    if (status === 'success') {
+      const timer = setTimeout(() => setIsUnlocked(true), 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [status]);
+
+  const handleReset = () => {
+    setIsUnlocked(false);
+    initGame();
+  };
+
   return (
     <div className="min-h-screen bg-[#020617] text-[#397789] p-4 md:p-8 pt-24 overflow-hidden font-mono">
       {/* Background Phosphor Glow */}
@@ -23,21 +67,32 @@ export default function LorePage() {
           </div>
           <div className="text-right mt-4 md:mt-0">
             <div className="text-[9px] tracking-[0.2em] text-[#397789]/40 uppercase">GTOVD Protocol // V2.0.26</div>
-            <div className="text-[9px] tracking-[0.2em] text-[#d4af37]/60 uppercase">Clearance: Level 4 [Restricted]</div>
+            <div className="text-[9px] tracking-[0.2em] text-[#d4af37]/60 uppercase">
+              Clearance: {isUnlocked ? 'Level 4 [Granted]' : 'Level 4 [Restricted]'}
+            </div>
           </div>
         </header>
         
-        <main className="relative group">
-          {/* Immersive Terminal Container */}
-          <div className="relative z-0 bg-black/40 backdrop-blur-sm border border-[#397789]/30 rounded-sm overflow-hidden shadow-[0_0_50px_rgba(57,119,137,0.1)]">
-            {/* Scanline & CRT Effects */}
-            <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.1)_50%),linear-gradient(90deg,rgba(255,0,0,0.02),rgba(0,255,0,0.01),rgba(0,0,255,0.02))] z-10 bg-[length:100%_3px,3px_100%]" />
-            <div className="absolute inset-0 pointer-events-none shadow-[inset_0_0_100px_rgba(0,0,0,0.5)] z-10" />
-            
-            <div className="p-1">
-               <TerminalInterface />
+        <main className="relative group min-h-[500px]">
+          {status === 'locked' ? (
+            <AccessDenied onRetry={handleReset} />
+          ) : isUnlocked ? (
+            <div className="relative z-0 bg-black/40 backdrop-blur-sm border border-[#397789]/30 rounded-sm overflow-hidden shadow-[0_0_50px_rgba(57,119,137,0.1)]">
+              {/* Scanline & CRT Effects */}
+              <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.1)_50%),linear-gradient(90deg,rgba(255,0,0,0.02),rgba(0,255,0,0.01),rgba(0,0,255,0.02))] z-10 bg-[length:100%_3px,3px_100%]" />
+              <div className="absolute inset-0 pointer-events-none shadow-[inset_0_0_100px_rgba(0,0,0,0.5)] z-10" />
+              <div className="p-1">
+                 <TerminalInterface />
+              </div>
             </div>
-          </div>
+          ) : (
+            <TerminalGrid 
+              words={displayWords} 
+              onWordClick={selectWord} 
+              attemptsRemaining={attemptsRemaining} 
+              logs={logs}
+            />
+          )}
         </main>
         
         <footer className="mt-8 flex justify-between items-center text-[9px] text-[#397789]/30 uppercase tracking-[0.3em]">
@@ -45,8 +100,8 @@ export default function LorePage() {
             <span className="animate-pulse">● Neural Link Active</span>
             <span>Bitstream: Synchronized</span>
           </div>
-          <div className="hidden md:block">
-            Vault Node: 0x397789A2
+          <div className="hidden md:block text-[#d4af37]/40">
+            {status === 'active' ? 'AUTHORIZATION_REQUIRED' : status === 'success' ? 'ACCESS_GRANTED' : 'TERMINAL_LOCKED'}
           </div>
         </footer>
       </div>
