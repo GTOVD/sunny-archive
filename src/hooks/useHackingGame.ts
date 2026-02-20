@@ -33,13 +33,21 @@ export const useHackingGame = ({ difficulty, wordList }: HackingGameOptions) => 
    * Initialize a new game session
    */
   const initGame = useCallback(() => {
-    const filteredWords = wordList
-      .filter(w => w.length === wordLength)
+    // Filter by length and ensure uniqueness
+    const validWords = Array.from(new Set(wordList.filter(w => w.length === wordLength)));
+    
+    if (validWords.length < 12 && validWords.length > 0) {
+      // Warning if not enough words provided for a full matrix, but continue
+      setLogs(prev => [...prev, 'WARNING: REDUCED WORD BUFFER DETECTED']);
+    }
+
+    const filteredWords = validWords
       .sort(() => Math.random() - 0.5)
       .slice(0, 12);
 
     if (filteredWords.length === 0) {
       setLogs(prev => [...prev, 'ERROR: NO COMPATIBLE WORDS FOUND']);
+      setStatus('idle');
       return;
     }
 
@@ -70,9 +78,16 @@ export const useHackingGame = ({ difficulty, wordList }: HackingGameOptions) => 
     if (status !== 'active') return;
 
     const guess = word.toUpperCase();
+    
+    // Safety check for word length mismatch
+    if (guess.length !== targetWord.length) {
+      setLogs(prev => [...prev, `> ${guess}`, '> ERROR: STRING_LENGTH_MISMATCH']);
+      return;
+    }
+
     if (guess === targetWord) {
       setStatus('success');
-      setLogs(prev => [...prev, `> ${guess}`, '> ACCESS GRANTED.']);
+      setLogs(prev => [...prev, `> ${guess}`, '> ACCESS GRANTED. RESONANCE_SYNC_INIT.']);
       return;
     }
 
@@ -84,7 +99,7 @@ export const useHackingGame = ({ difficulty, wordList }: HackingGameOptions) => 
 
     if (newAttempts <= 0) {
       setStatus('locked');
-      setLogs(prev => [...prev, '> TERMINAL LOCKED. CONTACT ADMINISTRATOR.']);
+      setLogs(prev => [...prev, '> TERMINAL LOCKED.', '> PERMANENT_LOCKOUT_ENGAGED.']);
     }
   }, [status, targetWord, attemptsRemaining]);
 
