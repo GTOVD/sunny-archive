@@ -59,10 +59,13 @@ export const TerminalInterface: React.FC = () => {
 
   if (!isBooted) {
     return (
-      <div className="flex items-center justify-center h-[500px] bg-black text-amber-500 font-mono border border-amber-900/30 rounded-lg">
-        <div className="flex flex-col items-center space-y-4">
-          <div className="w-12 h-12 border-2 border-amber-500 border-t-transparent rounded-full animate-spin" />
-          <span className="animate-pulse tracking-[0.2em] text-xs">ESTABLISHING UPLINK...</span>
+      <div className="flex items-center justify-center h-[600px] bg-black text-[#397789] font-mono border border-[#397789]/30 rounded-sm">
+        <div className="flex flex-col items-center space-y-6">
+          <div className="w-16 h-16 border-t-2 border-[#397789] rounded-full animate-spin" />
+          <div className="flex flex-col items-center gap-1">
+            <span className="animate-pulse tracking-[0.4em] text-[10px] uppercase">Establishing Neural Link</span>
+            <span className="text-[9px] text-[#397789]/40 tracking-widest uppercase">Protocol: GTOVD-V2</span>
+          </div>
         </div>
       </div>
     );
@@ -70,32 +73,28 @@ export const TerminalInterface: React.FC = () => {
 
   return (
     <div 
-      className="w-full max-w-4xl mx-auto bg-black border border-amber-900/50 rounded-lg shadow-2xl p-6 font-mono text-amber-500 relative overflow-hidden"
-      style={{ boxShadow: '0 0 40px rgba(120, 50, 0, 0.15)' }}
+      className="w-full bg-black/80 p-6 md:p-10 font-mono text-[#397789] relative overflow-hidden min-h-[600px] flex flex-col"
     >
-      {/* Aesthetic scanline effect */}
-      <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] z-10 bg-[length:100%_2px,3px_100%]" />
-      
       <div 
         ref={terminalRef}
-        className="h-[450px] overflow-y-auto mb-4 scrollbar-hide space-y-4 relative z-0"
+        className="flex-1 overflow-y-auto mb-6 scrollbar-hide space-y-6 relative z-0"
       >
-        <div className="space-y-1 opacity-50">
+        <div className="space-y-1 opacity-40 text-[10px] uppercase tracking-wider mb-8">
           {INITIAL_GREETING.map((line, i) => (
-            <div key={`boot-${i}`} className="text-[10px] text-amber-700/70">{line}</div>
+            <div key={`boot-${i}`}>{line}</div>
           ))}
         </div>
         
         {history.map((cmd, i) => (
-          <div key={i} className="space-y-2">
-            <div className="flex items-center space-x-2">
-              <span className="text-amber-900/50 text-xs">RESEARCHER@ARCHIVE:~$</span>
-              <span className="text-amber-200">{cmd.input}</span>
+          <div key={i} className="space-y-4">
+            <div className="flex items-center gap-3">
+              <span className="text-[#397789]/40 text-[10px] tracking-widest uppercase">GTOVD@VAULT:~$</span>
+              <span className="text-[#e2e8f0] tracking-wider">{cmd.input}</span>
             </div>
-            <div className="whitespace-pre-wrap text-amber-400/90 pl-4 border-l border-amber-900/30 text-sm leading-relaxed">
+            <div className="whitespace-pre-wrap text-[#397789] pl-6 border-l border-[#397789]/20 text-sm leading-relaxed tracking-wide font-medium">
               <Typewriter 
                 text={cmd.output} 
-                speed={10} 
+                speed={8} 
                 onComplete={() => i === history.length - 1 && setIsProcessing(false)}
               />
             </div>
@@ -103,16 +102,16 @@ export const TerminalInterface: React.FC = () => {
         ))}
       </div>
 
-      <form onSubmit={handleCommand} className="flex items-center space-x-2 border-t border-amber-900/20 pt-4 relative z-0">
-        <span className="text-amber-700 text-xs">RESEARCHER@ARCHIVE:~$</span>
+      <form onSubmit={handleCommand} className="flex items-center gap-4 border-t border-[#397789]/20 pt-6 relative z-0">
+        <span className="text-[#397789]/60 text-[10px] tracking-widest uppercase shrink-0">GTOVD@VAULT:~$</span>
         <input 
           autoFocus
           type="text"
           value={input}
           disabled={isProcessing}
           onChange={(e) => setInput(e.target.value)}
-          placeholder={isProcessing ? "PROCESSING..." : "ENTER COMMAND (e.g., 'HELP')"}
-          className="flex-1 bg-transparent border-none outline-none text-amber-500 placeholder-amber-900/30 text-sm focus:ring-0"
+          placeholder={isProcessing ? "SYNCHRONIZING..." : "AWAITING INPUT (HELP/LIST/SYSTEM)"}
+          className="flex-1 bg-transparent border-none outline-none text-[#e2e8f0] placeholder-[#397789]/20 text-sm focus:ring-0 tracking-wider"
         />
       </form>
     </div>
