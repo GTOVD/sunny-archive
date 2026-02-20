@@ -27,7 +27,7 @@ export type FetchResult<T> =
  * Core Shopify Storefront API Fetch Wrapper
  * Implements architectural resilience (timeouts, retries, circuit breakers) for distributed edge environments.
  */
-async function storefrontFetch<T>(
+export async function storefrontFetch<T>(
   query: string,
   variables = {},
   options: { timeout?: number; retries?: number } = { timeout: 10000, retries: 3 }
@@ -187,6 +187,59 @@ export async function createCheckout(variantId: string) {
 
   const validated = ShopifyCheckoutSchema.parse(data.checkoutCreate.checkout);
   return validated.webUrl;
+}
+
+export async function createWaitlistCustomer(email: string) {
+  const query = `
+    mutation customerCreate($input: CustomerCreateInput!) {
+      customerCreate(input: $input) {
+        customer {
+          id
+          email
+          firstName
+          lastName
+        }
+        customerUserErrors {
+          message
+          field
+        }
+      }
+    }
+  `;
+
+  // We create a customer with a specific tag to mark them as waitlisted
+  // Note: Storefront API customerCreate requires a password. 
+  // We'll generate a random secure password as they are just signing up for a waitlist
+  // and will likely reset it or use a different flow later.
+  // Alternatively, we could use a metaobject if defined.
+  // For now, we'll use customer creation with a tag.
+  const password = Math.random().toString(36).slice(-8) + "Aa1!";
+
+  const { data, error, ok } = await storefrontFetch<any>(query, {
+    input: {
+      email,
+      password,
+      tags: ["WAITLIST", "TREASURY_WAITLIST"],
+      acceptsMarketing: true
+    },
+  });
+
+  if (!ok) {
+    console.error("Shopify Waitlist Error:", error);
+    return { success: false, error: error };
+  }
+
+  if (data?.customerCreate?.customerUserErrors?.length > 0) {
+    const errors = data.customerCreate.customerUserErrors.map((e: any) => e.message).join(", ");
+    console.error("Shopify Waitlist User Error:", errors);
+    return { success: false, error: errors };
+  }
+
+  if (!data?.customerCreate?.customer) {
+    return { success: false, error: "Unknown error" };
+  }
+
+  return { success: true, customer: data.customerCreate.customer };
 }
 
 export async function getProductByHandle(handle: string) {
