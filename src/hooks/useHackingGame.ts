@@ -2,133 +2,137 @@ import { useState, useCallback, useMemo } from 'react';
 
 export type GameStatus = 'idle' | 'active' | 'success' | 'locked';
 
-export interface UseHackingGameProps {
-  difficulty?: 'easy' | 'medium' | 'hard';
-  onSuccess?: () => void;
-  onLockout?: () => void;
+interface HackingGameOptions {
+  difficulty: 'easy' | 'medium' | 'hard';
+  wordList: string[];
 }
 
-export const useHackingGame = ({
-  difficulty = 'easy',
-  onSuccess,
-  onLockout,
-}: UseHackingGameProps = {}) => {
-  const [status, setStatus] = useState<GameStatus>('idle');
-  const [attemptsRemaining, setAttemptsRemaining] = useState(4);
-  const [words, setWords] = useState<string[]>([]);
+/**
+ * useHackingGame Hook
+ * Core logic for the Fallout-style terminal hacking game.
+ * Implements Likeness scoring, Dud removal, and Attempt management.
+ * V2: Includes hint trigger support.
+ */
+export const useHackingGame = ({ difficulty, wordList }: HackingGameOptions) => {
   const [targetWord, setTargetWord] = useState<string>('');
-  const [outputLog, setOutputLog] = useState<string[]>([]);
+  const [displayWords, setDisplayWords] = useState<string[]>([]);
+  const [attemptsRemaining, setAttemptsRemaining] = useState<number>(4);
+  const [status, setStatus] = useState<GameStatus>('idle');
+  const [logs, setLogs] = useState<string[]>([]);
 
-  const config = useMemo(() => {
+  // Calculate word length based on difficulty
+  const wordLength = useMemo(() => {
     switch (difficulty) {
-      case 'hard':
-        return { wordLength: 10, wordCount: 12 };
-      case 'medium':
-        return { wordLength: 7, wordCount: 10 };
-      case 'easy':
-      default:
-        return { wordLength: 5, wordCount: 8 };
+      case 'easy': return 4;
+      case 'medium': return 6;
+      case 'hard': return 8;
+      default: return 6;
     }
   }, [difficulty]);
 
-  const calculateLikeness = useCallback((guess: string, target: string) => {
-    let likeness = 0;
-    const len = Math.min(guess.length, target.length);
-    for (let i = 0; i < len; i++) {
-      if (guess[i].toUpperCase() === target[i].toUpperCase()) {
-        likeness++;
-      }
-    }
-    return likeness;
-  }, []);
-
-  const startGame = useCallback((allAvailableWords: string[]) => {
-    // Filter words by length based on difficulty
-    const filtered = allAvailableWords
-      .filter(w => w.length === config.wordLength)
-      .map(w => w.toUpperCase());
+  /**
+   * Initialize a new game session
+   */
+  const initGame = useCallback(() => {
+    const validWords = Array.from(new Set(wordList.filter(w => w.length === wordLength)));
     
-    if (filtered.length < config.wordCount) {
-      console.error(`Not enough words of length ${config.wordLength}`);
+    if (validWords.length < 12 && validWords.length > 0) {
+      setLogs(prev => [...prev, 'WARNING: REDUCED WORD BUFFER DETECTED']);
+    }
+
+    const filteredWords = validWords
+      .sort(() => Math.random() - 0.5)
+      .slice(0, 12);
+
+    if (filteredWords.length === 0) {
+      setLogs(prev => [...prev, 'ERROR: NO COMPATIBLE WORDS FOUND']);
+      setStatus('idle');
       return;
     }
 
-    // Pick random subset
-    const shuffled = [...filtered].sort(() => 0.5 - Math.random());
-    const selectedWords = shuffled.slice(0, config.wordCount);
-    const target = selectedWords[Math.floor(Math.random() * selectedWords.length)];
-
-    setWords(selectedWords);
-    setTargetWord(target);
+    const selected = filteredWords[Math.floor(Math.random() * filteredWords.length)];
+    setTargetWord(selected.toUpperCase());
+    setDisplayWords(filteredWords.map(w => w.toUpperCase()));
     setAttemptsRemaining(4);
     setStatus('active');
-    setOutputLog([
-      'ROBOCO INDUSTRIES (TM) TERMLINK PROTOCOL',
-      'ENTER PASSWORD NOW',
-      '',
-      `${attemptsRemaining} ATTEMPT(S) LEFT: █ █ █ █`
-    ]);
-  }, [config, attemptsRemaining]);
+    setLogs(['TERMINAL READY. SELECT OVERRIDE CODE.']);
+  }, [wordList, wordLength]);
 
-  const guessWord = useCallback((guess: string) => {
-    if (status !== 'active') return;
-    const upperGuess = guess.toUpperCase();
-
-    if (upperGuess === targetWord) {
-      setStatus('success');
-      setOutputLog(prev => [
-        ...prev,
-        `>${upperGuess}`,
-        '>Exact match.',
-        '>Please wait while system establishes connection...',
-      ]);
-      onSuccess?.();
-    } else {
-      const newAttempts = attemptsRemaining - 1;
-      setAttemptsRemaining(newAttempts);
-      const likeness = calculateLikeness(upperGuess, targetWord);
-
-      setOutputLog(prev => [
-        ...prev,
-        `>${upperGuess}`,
-        '>Entry denied.',
-        `>Likeness=${likeness}`,
-      ]);
-
-      if (newAttempts <= 0) {
-        setStatus('locked');
-        onLockout?.();
-      }
+  /**
+   * Calculate Likeness score (positional character matching)
+   */
+  const getLikeness = (word: string): number => {
+    let score = 0;
+    const guess = word.toUpperCase();
+    for (let i = 0; i < targetWord.length; i++) {
+      if (guess[i] === targetWord[i]) score++;
     }
-  }, [status, targetWord, attemptsRemaining, calculateLikeness, onSuccess, onLockout]);
+    return score;
+  };
 
-  const triggerDudRemoval = useCallback(() => {
-    if (status !== 'active' || words.length <= 1) return;
+  /**
+   * Handle word selection
+   */
+  const selectWord = useCallback((word: string) => {
+    if (status !== 'active') return;
+
+    const guess = word.toUpperCase();
     
-    const duds = words.filter(w => w !== targetWord);
+    if (guess.length !== targetWord.length) {
+      setLogs(prev => [...prev, `> ${guess}`, '> ERROR: STRING_LENGTH_MISMATCH']);
+      return;
+    }
+
+    if (guess === targetWord) {
+      setStatus('success');
+      setLogs(prev => [...prev, `> ${guess}`, '> ACCESS GRANTED. RESONANCE_SYNC_INIT.']);
+      return;
+    }
+
+    const likeness = getLikeness(guess);
+    const newAttempts = attemptsRemaining - 1;
+    
+    setAttemptsRemaining(newAttempts);
+    setLogs(prev => [...prev, `> ${guess}`, `> ENTRY DENIED. LIKENESS=${likeness}`]);
+
+    if (newAttempts <= 0) {
+      setStatus('locked');
+      setLogs(prev => [...prev, '> TERMINAL LOCKED.', '> PERMANENT_LOCKOUT_ENGAGED.']);
+    }
+  }, [status, targetWord, attemptsRemaining]);
+
+  /**
+   * Dud Removal (Triggered by symbol sequences)
+   */
+  const removeDud = useCallback(() => {
+    if (status !== 'active' || displayWords.length <= 1) return;
+    
+    const duds = displayWords.filter(w => w !== targetWord);
     if (duds.length === 0) return;
 
-    const dudToRemove = duds[Math.floor(Math.random() * duds.length)];
-    setWords(prev => prev.filter(w => w !== dudToRemove));
-    setOutputLog(prev => [...prev, '>Dud removed.']);
-  }, [status, words, targetWord]);
+    const removedDud = duds[Math.floor(Math.random() * duds.length)];
+    setDisplayWords(prev => prev.filter(w => w !== removedDud));
+    setLogs(prev => [...prev, '> HINT_ACTIVE: DUD_PURGED.']);
+  }, [status, displayWords, targetWord]);
 
-  const triggerAttemptReset = useCallback(() => {
+  /**
+   * Attempt Reset (Triggered by rare symbol sequences)
+   */
+  const resetAttempts = useCallback(() => {
     if (status !== 'active') return;
     setAttemptsRemaining(4);
-    setOutputLog(prev => [...prev, '>Allowance replenished.']);
+    setLogs(prev => [...prev, '> HINT_ACTIVE: ALLOWANCE_RESTORED.']);
   }, [status]);
 
   return {
-    status,
-    attemptsRemaining,
-    words,
     targetWord,
-    outputLog,
-    startGame,
-    guessWord,
-    triggerDudRemoval,
-    triggerAttemptReset,
-    setOutputLog,
+    displayWords,
+    attemptsRemaining,
+    status,
+    logs,
+    initGame,
+    selectWord,
+    removeDud,
+    resetAttempts
   };
 };

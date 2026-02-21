@@ -1,7 +1,7 @@
 'use client';
 
+import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { BoutiqueCard } from '@/components/ui/BoutiqueCard';
 import { TYPOGRAPHY } from '@/styles/typography';
 
 export default function Home() {
@@ -71,28 +71,24 @@ export default function Home() {
         </motion.p>
 
         <nav style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2.5rem', paddingTop: '4rem' }}>
-          <BoutiqueCard 
-            number="01"
-            title="Lore"
-            description="Sacred manuscripts and historical records."
-            href="/archive"
-            cta="Enter Vault"
-          />
-          <BoutiqueCard 
-            number="02"
-            title="Gallery"
-            description="Artistic credits and visual artifacts."
-            href="/gallery"
-            cta="View Gallery"
-          />
-          <BoutiqueCard 
-            number="03"
-            title="Treasury"
-            description="Exclusive goods and artifacts."
-            href="/treasury"
-            cta="Open Treasury"
-            isPremium
-          />
+          <div className="group relative p-8 border border-[#d4af37]/10 bg-black/40 backdrop-blur-md rounded-sm transition-all duration-500 hover:border-[#d4af37]/30">
+            <span className="text-[10px] text-[#d4af37]/40 uppercase tracking-widest block mb-4">01</span>
+            <h2 className="text-2xl font-['Playfair_Display'] text-white uppercase mb-4">Lore</h2>
+            <p className="text-[10px] text-stone-500 uppercase tracking-wider mb-8">Sacred manuscripts and historical records.</p>
+            <Link href="/archive" className="inline-block px-6 py-2 border border-[#d4af37]/20 text-[#d4af37] text-[10px] uppercase tracking-widest hover:bg-[#d4af37] hover:text-black transition-all">Enter Vault</Link>
+          </div>
+          <div className="group relative p-8 border border-[#d4af37]/10 bg-black/40 backdrop-blur-md rounded-sm transition-all duration-500 hover:border-[#d4af37]/30">
+            <span className="text-[10px] text-[#d4af37]/40 uppercase tracking-widest block mb-4">02</span>
+            <h2 className="text-2xl font-['Playfair_Display'] text-white uppercase mb-4">Gallery</h2>
+            <p className="text-[10px] text-stone-500 uppercase tracking-wider mb-8">Artistic credits and visual artifacts.</p>
+            <Link href="/gallery" className="inline-block px-6 py-2 border border-[#d4af37]/20 text-[#d4af37] text-[10px] uppercase tracking-widest hover:bg-[#d4af37] hover:text-black transition-all">View Gallery</Link>
+          </div>
+          <div className="group relative p-8 border border-[#d4af37]/10 bg-black/40 backdrop-blur-md rounded-sm transition-all duration-500 hover:border-[#d4af37]/30 shadow-[0_0_30px_rgba(212,175,55,0.05)]">
+            <span className="text-[10px] text-[#d4af37]/40 uppercase tracking-widest block mb-4">03</span>
+            <h2 className="text-2xl font-['Playfair_Display'] text-[#d4af37] uppercase mb-4 italic">Treasury</h2>
+            <p className="text-[10px] text-stone-500 uppercase tracking-wider mb-8">Exclusive goods and artifacts.</p>
+            <Link href="/treasury" className="inline-block px-6 py-3 bg-[#d4af37] text-black text-[10px] uppercase tracking-widest font-bold hover:bg-[#d4af37]/80 transition-all">Open Treasury</Link>
+          </div>
         </nav>
       </div>
     </div>
