@@ -6,9 +6,15 @@ const HEX_START = 0xF92A;
 
 interface TerminalGridProps {
   difficulty?: 'easy' | 'medium' | 'hard';
+  onSuccess?: () => void;
+  onLockout?: () => void;
 }
 
-export const TerminalGrid: React.FC<TerminalGridProps> = ({ difficulty = 'easy' }) => {
+export const TerminalGrid: React.FC<TerminalGridProps> = ({ 
+  difficulty = 'easy',
+  onSuccess,
+  onLockout
+}) => {
   // Mock word list for the terminal
   const wordList = useMemo(() => [
     'VAULT', 'SCYTHE', 'SACRED', 'PROVENANCE', 'HISTORY', 'ARTIFACT', 
@@ -69,6 +75,15 @@ export const TerminalGrid: React.FC<TerminalGridProps> = ({ difficulty = 'easy' 
   useEffect(() => {
     generateMatrix();
   }, [generateMatrix]);
+
+  // Handle game status changes
+  useEffect(() => {
+    if (status === 'success') {
+      onSuccess?.();
+    } else if (status === 'locked') {
+      onLockout?.();
+    }
+  }, [status, onSuccess, onLockout]);
 
   const handleSymbolClick = () => {
     // Basic symbol sequence interaction (chance to trigger hints)

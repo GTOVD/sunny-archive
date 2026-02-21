@@ -2,57 +2,37 @@
 
 import React, { useState, useEffect } from 'react';
 import TerminalInterface from '@/components/lore/TerminalInterface';
-import TerminalGrid from '@/components/lore/TerminalGrid';
+import { TerminalGrid } from '@/components/terminal/TerminalGrid';
 import AccessDenied from '@/components/lore/AccessDenied';
-import { useHackingGame } from '@/hooks/useHackingGame';
 
 /**
  * Lore Page - The Sacred Vault / Interactive Terminal
  * A high-fidelity, interactive terminal for exploring the Sunny Archive lore.
- * Implementation follows 'Luxury Boutique' aesthetic with a retro phosphor feel.
  * Dec 2026 Update: Gated behind Fallout-style hacking mini-game.
  */
 export default function LorePage() {
   const [isUnlocked, setIsUnlocked] = useState(false);
-  
-  // Mock word list for the hacking game - will be expanded in Cycle 58
-  const wordList = [
-    'VAULT', 'LORE', 'NEXUS', 'VOID', 'GTOVD', 'SUNNY', 'SYNC', 'ARCH',
-    'SYMBIO', 'PROTO', 'CORE', 'BOND', 'PULSE', 'GRID', 'LINK', 'GATED'
-  ];
+  const [isLockedOut, setIsLockedOut] = useState(false);
 
-  const {
-    displayWords,
-    attemptsRemaining,
-    status,
-    logs,
-    initGame,
-    selectWord
-  } = useHackingGame({ 
-    difficulty: 'medium', 
-    wordList 
-  });
+  // Sync unlock state from persistent storage or parent logic if needed
+  // For now, we use local state that resets on refresh
 
-  // Initialize game on mount
-  useEffect(() => {
-    initGame();
-  }, [initGame]);
+  const handleSuccess = () => {
+    const timer = setTimeout(() => setIsUnlocked(true), 1500);
+    return () => clearTimeout(timer);
+  };
 
-  // Sync unlock state
-  useEffect(() => {
-    if (status === 'success') {
-      const timer = setTimeout(() => setIsUnlocked(true), 1500);
-      return () => clearTimeout(timer);
-    }
-  }, [status]);
+  const handleLockout = () => {
+    setIsLockedOut(true);
+  };
 
   const handleReset = () => {
     setIsUnlocked(false);
-    initGame();
+    setIsLockedOut(false);
   };
 
   return (
-    <div className="min-h-screen bg-[#020617] text-[#397789] p-4 md:p-8 pt-24 overflow-hidden font-mono">
+    <div className="min-h-screen bg-[#020617] text-[#397789] p-4 md:p-8 pt-24 overflow-hidden font-mono selection:bg-[#d4af37] selection:text-[#020617]">
       {/* Background Phosphor Glow */}
       <div className="fixed inset-0 bg-[#020617] -z-10" />
       <div className="fixed inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(57,119,137,0.05)_0%,transparent_100%)] -z-10 pointer-events-none" />
@@ -74,7 +54,7 @@ export default function LorePage() {
         </header>
         
         <main className="relative group min-h-[500px]">
-          {status === 'locked' ? (
+          {isLockedOut ? (
             <AccessDenied onRetry={handleReset} />
           ) : isUnlocked ? (
             <div className="relative z-0 bg-black/40 backdrop-blur-sm border border-[#397789]/30 rounded-sm overflow-hidden shadow-[0_0_50px_rgba(57,119,137,0.1)]">
@@ -87,10 +67,9 @@ export default function LorePage() {
             </div>
           ) : (
             <TerminalGrid 
-              words={displayWords} 
-              onWordClick={selectWord} 
-              attemptsRemaining={attemptsRemaining} 
-              logs={logs}
+              difficulty="medium"
+              onSuccess={handleSuccess}
+              onLockout={handleLockout}
             />
           )}
         </main>
@@ -101,7 +80,7 @@ export default function LorePage() {
             <span>Bitstream: Synchronized</span>
           </div>
           <div className="hidden md:block text-[#d4af37]/40">
-            {status === 'active' ? 'AUTHORIZATION_REQUIRED' : status === 'success' ? 'ACCESS_GRANTED' : 'TERMINAL_LOCKED'}
+            {isUnlocked ? 'ACCESS_GRANTED' : isLockedOut ? 'TERMINAL_LOCKED' : 'AUTHORIZATION_REQUIRED'}
           </div>
         </footer>
       </div>
