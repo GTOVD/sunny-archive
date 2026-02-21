@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useHackingGame } from '../../hooks/useHackingGame';
+import { useTerminalAudio } from '../../hooks/useTerminalAudio';
 
 const SYMBOLS = '!@#$%^&*()_+-=[]{}|;:,.<>?/';
 const HEX_START = 0xF92A;
@@ -15,6 +16,9 @@ export const TerminalGrid: React.FC<TerminalGridProps> = ({
   onSuccess,
   onLockout
 }) => {
+  const { playSound } = useTerminalAudio();
+  const [isGlitching, setIsGlitching] = useState(false);
+
   // Mock word list for the terminal
   const wordList = useMemo(() => [
     'VAULT', 'SCYTHE', 'SACRED', 'PROVENANCE', 'HISTORY', 'ARTIFACT', 
@@ -79,21 +83,43 @@ export const TerminalGrid: React.FC<TerminalGridProps> = ({
   // Handle game status changes
   useEffect(() => {
     if (status === 'success') {
+      playSound('granted');
       onSuccess?.();
     } else if (status === 'locked') {
+      playSound('denied');
       onLockout?.();
     }
-  }, [status, onSuccess, onLockout]);
+  }, [status, onSuccess, onLockout, playSound]);
 
   const handleSymbolClick = () => {
+    playSound('keystroke');
     // Basic symbol sequence interaction (chance to trigger hints)
     const rand = Math.random();
     if (rand > 0.9) resetAttempts();
     else if (rand > 0.7) removeDud();
   };
 
+  const handleWordSelection = (word: string) => {
+    playSound('enter');
+    const prevAttempts = attemptsRemaining;
+    selectWord(word);
+    
+    // Check if guess was wrong (attempts decreased)
+    if (attemptsRemaining < prevAttempts && status !== 'success') {
+      setIsGlitching(true);
+      playSound('denied', 0.1);
+      setTimeout(() => setIsGlitching(false), 200);
+    }
+  };
+
   return (
-    <div className="terminal-container min-h-[600px] w-full bg-[#020617] p-8 font-mono text-[#d4af37] selection:bg-[#d4af37] selection:text-[#020617] overflow-hidden">
+    <div className={cn(
+      "terminal-container min-h-[600px] w-full bg-[#020617] p-8 font-mono text-[#d4af37] selection:bg-[#d4af37] selection:text-[#020617] overflow-hidden animate-phosphor",
+      isGlitching && "animate-terminal-glitch"
+    )}>
+      {/* Scanline Overlay */}
+      <div className="pointer-events-none fixed inset-0 z-50 bg-scanline opacity-[0.03] animate-scanline" />
+      
       {/* Phosphor Effect Overlay */}
       <div className="pointer-events-none fixed inset-0 z-50 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[length:100%_2px,3px_100%] opacity-30" />
       
@@ -141,7 +167,7 @@ export const TerminalGrid: React.FC<TerminalGridProps> = ({
                       ) : (
                         <span 
                           key={j} 
-                          onClick={() => selectWord(part.word)}
+                          onClick={() => handleWordSelection(part.word)}
                           className="font-bold cursor-pointer hover:bg-[#d4af37] hover:text-[#020617] transition-colors decoration-dotted underline-offset-4"
                         >
                           {part.word}
