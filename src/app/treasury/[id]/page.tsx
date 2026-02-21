@@ -2,11 +2,10 @@ import { getProductByHandle, getProducts, createCheckout } from "@/lib/shopify";
 import { notFound, redirect } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { MetadataChip } from "@/components/artifact/MetadataChip";
+import SacredProvenance from "@/components/artifact/SacredProvenance";
 
 /**
  * Generate Static Params for optimized SSG on Vercel.
- * Fetches the first 100 artifact handles to pre-render detail pages.
  */
 export async function generateStaticParams() {
   const products = await getProducts(100);
@@ -16,10 +15,7 @@ export async function generateStaticParams() {
 }
 
 /**
- * Artifact Detail View - Vault Substrate
- * 
- * An immersive, high-fidelity detail page for artifact examination.
- * Synchronized with the "Vault" aesthetic: Dark theme, Gold accents, Lore-focused.
+ * Artifact Detail View - Sacred Provenance Edition
  */
 export default async function ArtifactPage({ params }: { params: { id: string } }) {
   const { id } = await params;
@@ -33,6 +29,14 @@ export default async function ArtifactPage({ params }: { params: { id: string } 
     style: "currency",
     currency: product.priceRange.minVariantPrice.currencyCode,
   }).format(parseFloat(product.priceRange.minVariantPrice.amount));
+
+  // Extraction of High-Fidelity Provenance Data from tags or meta
+  const provenanceData = {
+    birthDate: product.tags?.find((t: string) => t.startsWith("Born:"))?.split(":")[1] || "Era_Unknown",
+    craftsman: product.tags?.find((t: string) => t.startsWith("Agent:"))?.split(":")[1] || "The Architect",
+    loreHash: product.tags?.find((t: string) => t.startsWith("Hash:"))?.split(":")[1] || "0x" + Math.random().toString(16).slice(2, 42).toUpperCase(),
+    originNode: product.tags?.find((t: string) => t.startsWith("Node:"))?.split(":")[1] || "ROOT_SUBSYSTEM"
+  };
 
   /**
    * Acquisition Action Handler
@@ -48,17 +52,12 @@ export default async function ArtifactPage({ params }: { params: { id: string } 
     }
   }
 
-  // Extract lore metadata from tags
-  const rarity = product.tags?.find((t: string) => t.startsWith("Rarity:"))?.split(":")[1] || "Relic";
-  const origin = product.tags?.find((t: string) => t.startsWith("Origin:"))?.split(":")[1] || "Sunny Archive";
-
   return (
     <main className="relative min-h-screen bg-[#020617] text-[#e2e8f0] pt-32 pb-24 px-6 md:px-12 lg:px-24 overflow-hidden">
-      {/* Visual Substrate Ornament */}
       <div className="absolute top-0 right-0 w-1/2 h-full bg-[#d4af37]/[0.02] -z-10 blur-[120px]" />
+      <div className="fixed bottom-0 left-0 w-1/2 h-1/2 bg-[#397789]/[0.01] -z-10 blur-[100px]" />
       
       <div className="max-w-7xl mx-auto">
-        {/* Navigation Breadcrumb */}
         <nav className="mb-16">
           <Link 
             href="/treasury" 
@@ -69,9 +68,8 @@ export default async function ArtifactPage({ params }: { params: { id: string } 
         </nav>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-32 items-start">
-          {/* Visual Canvas (Image Gallery) */}
           <div className="space-y-10">
-            <div className="aspect-[4/5] relative bg-[#0f172a] overflow-hidden border border-white/5 shadow-2xl">
+            <div className="aspect-[4/5] relative bg-[#0f172a] overflow-hidden border border-[#d4af37]/10 shadow-2xl">
               {product.images.nodes[0] ? (
                 <Image
                   src={product.images.nodes[0].url}
@@ -87,7 +85,6 @@ export default async function ArtifactPage({ params }: { params: { id: string } 
               )}
             </div>
             
-            {/* Secondary Views */}
             <div className="grid grid-cols-4 gap-4">
               {product.images.nodes.slice(1, 5).map((image: any, index: number) => (
                 <div key={index} className="aspect-square relative bg-[#0f172a] overflow-hidden border border-white/5 transition-transform hover:scale-105 duration-500">
@@ -100,9 +97,13 @@ export default async function ArtifactPage({ params }: { params: { id: string } 
                 </div>
               ))}
             </div>
+
+            {/* Sacred Provenance Gating Section */}
+            <div className="mt-12">
+              <SacredProvenance artifactName={product.title} provenance={provenanceData} />
+            </div>
           </div>
 
-          {/* Narrative Substrate */}
           <div className="flex flex-col pt-4">
             <div className="border-b border-white/5 pb-10 mb-12">
               <div className="font-['Cinzel'] text-[10px] tracking-[0.6em] text-[#d4af37] uppercase mb-4">
@@ -117,21 +118,9 @@ export default async function ArtifactPage({ params }: { params: { id: string } 
                 </p>
                 <div className="h-px w-12 bg-[#d4af37]/20"></div>
                 <span className="text-[10px] tracking-[0.3em] uppercase text-[#64748b]">
-                  ID: {product.id.split('/').pop()}
+                  NODE_ID: {product.id.split('/').pop()?.toUpperCase()}
                 </span>
               </div>
-            </div>
-
-            {/* Lore Metadata Tier */}
-            <div className="grid grid-cols-2 gap-6 mb-16">
-               <div className="flex flex-col gap-2 p-5 border border-white/5 bg-white/[0.02] backdrop-blur-md">
-                 <span className="text-[9px] tracking-[0.3em] uppercase text-[#d4af37]/60">Provenance</span>
-                 <span className="font-['Cinzel'] text-sm text-white tracking-wide">{origin}</span>
-               </div>
-               <div className="flex flex-col gap-2 p-5 border border-white/5 bg-white/[0.02] backdrop-blur-md">
-                 <span className="text-[9px] tracking-[0.3em] uppercase text-[#d4af37]/60">Classification</span>
-                 <span className="font-['Cinzel'] text-sm text-white tracking-wide">{rarity}</span>
-               </div>
             </div>
 
             <div className="space-y-12 mb-20">
@@ -149,7 +138,6 @@ export default async function ArtifactPage({ params }: { params: { id: string } 
               )}
             </div>
 
-            {/* Interface Actions */}
             <div className="mt-auto space-y-10">
               <form action={acquireArtifact}>
                 <button 
@@ -163,12 +151,12 @@ export default async function ArtifactPage({ params }: { params: { id: string } 
                 </button>
               </form>
               
-              <div className="flex items-center justify-between text-[9px] tracking-[0.3em] uppercase text-[#475569] border-t border-white/5 pt-10">
+              <div className="flex items-center justify-between text-[9px] tracking-[0.3em] uppercase text-[#475569] border-t border-white/5 pt-10 font-mono">
                 <div className="flex items-center gap-3">
                   <div className="w-1.5 h-1.5 rounded-full bg-[#d4af37]/40 shadow-[0_0_8px_#d4af37]"></div>
                   <span>Secure Handshake Verified</span>
                 </div>
-                <span>Sync Status: Stable</span>
+                <span>Substrate_v2.3.0</span>
               </div>
             </div>
           </div>
