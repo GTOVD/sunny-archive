@@ -1,14 +1,21 @@
-import { getProductByHandle, createCheckout } from "@/lib/shopify";
+import { getProductByHandle, getProducts, createCheckout } from "@/lib/shopify";
 import { notFound, redirect } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { MetadataChip } from "@/components/artifact/MetadataChip";
+import SacredProvenance from "@/components/artifact/SacredProvenance";
 
 /**
- * Artifact Detail View
- * 
- * An immersive, "Luxury Boutique" style detail page for high-fidelity artifact examination.
- * Implements aesthetic spacing, serif typography, and graceful layout transitions.
+ * Generate Static Params for optimized SSG on Vercel.
+ */
+export async function generateStaticParams() {
+  const products = await getProducts(100);
+  return products.map((product: any) => ({
+    id: product.handle || product.id,
+  }));
+}
+
+/**
+ * Artifact Detail View - Sacred Provenance Edition
  */
 export default async function ArtifactPage({ params }: { params: { id: string } }) {
   const { id } = await params;
@@ -23,9 +30,16 @@ export default async function ArtifactPage({ params }: { params: { id: string } 
     currency: product.priceRange.minVariantPrice.currencyCode,
   }).format(parseFloat(product.priceRange.minVariantPrice.amount));
 
+  // Extraction of High-Fidelity Provenance Data from tags or meta
+  const provenanceData = {
+    birthDate: product.tags?.find((t: string) => t.startsWith("Born:"))?.split(":")[1] || "Era_Unknown",
+    craftsman: product.tags?.find((t: string) => t.startsWith("Agent:"))?.split(":")[1] || "The Architect",
+    loreHash: product.tags?.find((t: string) => t.startsWith("Hash:"))?.split(":")[1] || "0x" + Math.random().toString(16).slice(2, 42).toUpperCase(),
+    originNode: product.tags?.find((t: string) => t.startsWith("Node:"))?.split(":")[1] || "ROOT_SUBSYSTEM"
+  };
+
   /**
    * Acquisition Action Handler
-   * Triggers the Shopify Checkout flow for the selected artifact.
    */
   async function acquireArtifact() {
     "use server";
@@ -38,124 +52,111 @@ export default async function ArtifactPage({ params }: { params: { id: string } 
     }
   }
 
-  // Extract metadata from Shopify tags or metafields if available, fallback to defaults
-  const rarity = product.tags?.find((t: string) => t.startsWith("Rarity:"))?.split(":")[1] || "Relic";
-  const origin = product.tags?.find((t: string) => t.startsWith("Origin:"))?.split(":")[1] || "Ancient Archive";
-
   return (
-    <main className="min-h-screen bg-stone-50 pt-32 pb-24 px-6 md:px-12 lg:px-24">
+    <main className="relative min-h-screen bg-[#020617] text-[#e2e8f0] pt-32 pb-24 px-6 md:px-12 lg:px-24 overflow-hidden">
+      <div className="absolute top-0 right-0 w-1/2 h-full bg-[#d4af37]/[0.02] -z-10 blur-[120px]" />
+      <div className="fixed bottom-0 left-0 w-1/2 h-1/2 bg-[#397789]/[0.01] -z-10 blur-[100px]" />
+      
       <div className="max-w-7xl mx-auto">
-        {/* Navigation Breadcrumb */}
-        <nav className="mb-12">
+        <nav className="mb-16">
           <Link 
             href="/treasury" 
-            className="text-stone-400 hover:text-stone-900 transition-colors duration-300 text-sm tracking-widest uppercase flex items-center gap-2"
+            className="text-[#d4af37]/40 hover:text-[#d4af37] transition-all duration-500 text-[10px] tracking-[0.4em] uppercase flex items-center gap-3 no-underline"
           >
-            <span>←</span> Back to Treasury
+            <span className="text-lg">←</span> Return to Vault
           </Link>
         </nav>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-start">
-          {/* Visual Canvas (Image Gallery) */}
-          <div className="space-y-8">
-            <div className="aspect-[4/5] relative bg-stone-100 overflow-hidden rounded-sm group shadow-sm">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-32 items-start">
+          <div className="space-y-10">
+            <div className="aspect-[4/5] relative bg-[#0f172a] overflow-hidden border border-[#d4af37]/10 shadow-2xl">
               {product.images.nodes[0] ? (
                 <Image
                   src={product.images.nodes[0].url}
                   alt={product.images.nodes[0].altText || product.title}
                   fill
-                  className="object-cover transition-transform duration-1000 group-hover:scale-105"
+                  className="object-cover grayscale hover:grayscale-0 transition-all duration-1000"
                   priority
                 />
               ) : (
-                <div className="absolute inset-0 flex items-center justify-center text-stone-300 italic">
-                  Image Unavailable
+                <div className="absolute inset-0 flex items-center justify-center font-['Cinzel'] text-[10px] text-[#d4af37]/20 uppercase tracking-widest">
+                  Visual Link Severed
                 </div>
               )}
-              {/* Etched Glass Glow Overlay */}
-              <div className="absolute inset-0 pointer-events-none border border-white/20 rounded-sm"></div>
             </div>
             
-            {/* Secondary Views */}
             <div className="grid grid-cols-4 gap-4">
               {product.images.nodes.slice(1, 5).map((image: any, index: number) => (
-                <div key={index} className="aspect-square relative bg-stone-100 rounded-sm overflow-hidden border border-stone-200/40">
+                <div key={index} className="aspect-square relative bg-[#0f172a] overflow-hidden border border-white/5 transition-transform hover:scale-105 duration-500">
                   <Image
                     src={image.url}
-                    alt={image.altText || `${product.title} - view ${index + 2}`}
+                    alt={image.altText || `${product.title} - fragment ${index + 2}`}
                     fill
-                    className="object-cover transition-opacity duration-500 hover:opacity-80"
+                    className="object-cover grayscale hover:grayscale-0 transition-all duration-700"
                   />
                 </div>
               ))}
             </div>
+
+            {/* Sacred Provenance Gating Section */}
+            <div className="mt-12">
+              <SacredProvenance artifactName={product.title} provenance={provenanceData} />
+            </div>
           </div>
 
-          {/* Narrative Content (Details) */}
           <div className="flex flex-col pt-4">
-            <div className="border-b border-stone-200 pb-8 mb-10">
-              <h1 className="text-4xl md:text-6xl font-serif text-stone-900 mb-6 leading-[1.1] tracking-tight">
+            <div className="border-b border-white/5 pb-10 mb-12">
+              <div className="font-['Cinzel'] text-[10px] tracking-[0.6em] text-[#d4af37] uppercase mb-4">
+                Artifact Specification
+              </div>
+              <h1 className="text-5xl md:text-7xl font-['Playfair_Display'] text-white mb-8 leading-tight tracking-tighter lowercase">
                 {product.title}
               </h1>
-              <div className="flex items-center gap-6">
-                <p className="text-2xl font-light text-stone-600 tracking-tight">
+              <div className="flex items-center gap-8">
+                <p className="text-2xl font-light text-[#e2e8f0]/80 tracking-tight font-mono">
                   {price}
                 </p>
-                <div className="h-px w-8 bg-stone-300"></div>
-                <span className="text-[10px] tracking-[0.3em] uppercase text-stone-400 font-medium">
-                  Reference: #{product.id.split('/').pop()}
+                <div className="h-px w-12 bg-[#d4af37]/20"></div>
+                <span className="text-[10px] tracking-[0.3em] uppercase text-[#64748b]">
+                  NODE_ID: {product.id.split('/').pop()?.toUpperCase()}
                 </span>
-                {product.variants.nodes[0]?.availableForSale === false && (
-                  <span className="text-[10px] tracking-[0.2em] uppercase bg-stone-200 text-stone-500 px-2 py-1 rounded-sm">
-                    Archived
-                  </span>
-                )}
               </div>
             </div>
 
-            {/* Substrate Metadata Tier */}
-            <div className="grid grid-cols-2 gap-4 mb-12">
-              <MetadataChip label="Provenance" value={origin} />
-              <MetadataChip label="Classification" value={rarity} />
-            </div>
-
-            <div className="space-y-10 mb-16">
-              <div className="prose prose-stone prose-lg max-w-none">
-                <p className="text-stone-700 leading-relaxed font-light first-letter:text-4xl first-letter:font-serif first-letter:float-left first-letter:mr-3 first-letter:mt-1 whitespace-pre-line">
+            <div className="space-y-12 mb-20">
+              <div className="prose prose-invert max-w-none">
+                <p className="text-[#94a3b8] leading-relaxed font-light text-lg first-letter:text-5xl first-letter:font-['Playfair_Display'] first-letter:text-[#d4af37] first-letter:mr-4 first-letter:float-left first-letter:mt-1 whitespace-pre-line">
                   {product.description}
                 </p>
               </div>
 
               {product.descriptionHtml && (
                 <div 
-                  className="prose prose-stone max-w-none text-stone-500 font-light text-sm leading-loose border-t border-stone-100 pt-10"
+                  className="prose prose-invert max-w-none text-[#64748b] font-light text-xs leading-loose border-t border-white/5 pt-12 italic"
                   dangerouslySetInnerHTML={{ __html: product.descriptionHtml }}
                 />
               )}
             </div>
 
-            {/* Action Tier */}
-            <div className="mt-auto space-y-8">
+            <div className="mt-auto space-y-10">
               <form action={acquireArtifact}>
                 <button 
                   disabled={product.variants.nodes[0]?.availableForSale === false}
-                  className="w-full bg-stone-900 text-white py-6 px-10 rounded-sm text-xs tracking-[0.3em] uppercase font-semibold hover:bg-stone-800 transition-all duration-500 shadow-xl shadow-stone-200/50 hover:shadow-2xl hover:shadow-stone-300/50 active:scale-[0.99] disabled:bg-stone-300 disabled:cursor-not-allowed disabled:shadow-none"
+                  className="group relative w-full bg-[#d4af37] text-[#020617] py-6 px-10 text-[10px] tracking-[0.4em] uppercase font-bold transition-all duration-700 hover:bg-white hover:tracking-[0.6em] disabled:bg-[#1e293b] disabled:text-[#475569] disabled:cursor-not-allowed overflow-hidden"
                 >
-                  {product.variants.nodes[0]?.availableForSale === false ? "Artifact Archived" : "Acquire Artifact"}
+                  <span className="relative z-10">
+                    {product.variants.nodes[0]?.availableForSale === false ? "Access Restricted" : "Initiate Acquisition"}
+                  </span>
+                  <div className="absolute inset-0 bg-white translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
                 </button>
               </form>
               
-              <div className="flex flex-col gap-4">
-                <div className="flex items-center justify-between text-[10px] tracking-[0.25em] uppercase text-stone-400 border-t border-stone-100 pt-8">
-                  <div className="flex items-center gap-2">
-                    <div className="w-1 h-1 rounded-full bg-stone-300"></div>
-                    <span>Hand-curated Selection</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-1 h-1 rounded-full bg-stone-300"></div>
-                    <span>Artifact Registry Verified</span>
-                  </div>
+              <div className="flex items-center justify-between text-[9px] tracking-[0.3em] uppercase text-[#475569] border-t border-white/5 pt-10 font-mono">
+                <div className="flex items-center gap-3">
+                  <div className="w-1.5 h-1.5 rounded-full bg-[#d4af37]/40 shadow-[0_0_8px_#d4af37]"></div>
+                  <span>Secure Handshake Verified</span>
                 </div>
+                <span>Substrate_v2.3.0</span>
               </div>
             </div>
           </div>

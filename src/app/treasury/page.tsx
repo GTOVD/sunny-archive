@@ -1,117 +1,95 @@
 import Link from 'next/link';
 import { ShopifyProduct } from '@/lib/schema';
-import { getProducts, createCheckout } from '@/lib/shopify';
-import { redirect } from 'next/navigation';
+import { getProducts } from '@/lib/shopify';
+import BoutiqueCard from '@/components/ui/BoutiqueCard';
+import TreasuryWaitlist from '@/components/artifact/TreasuryWaitlist';
 
+/**
+ * Vault (Treasury) Component - Boutique Edition
+ * A high-fidelity showcase for synchronized artifacts.
+ * Part of the 'Luxury Boutique' V2.3.0 substrate.
+ */
 export default async function TreasuryPage() {
-  const products: ShopifyProduct[] = await getProducts(24);
-
-  async function handleAcquire(formData: FormData) {
-    'use server';
-    const variantId = formData.get('variantId') as string;
-    if (!variantId) return;
-    
-    const checkoutUrl = await createCheckout(variantId);
-    if (checkoutUrl) {
-      redirect(checkoutUrl);
-    }
-  }
+  const products: ShopifyProduct[] = await getProducts(12);
 
   return (
-    <div style={{
-      position: 'relative',
-      minHeight: '100vh',
-      paddingTop: '8rem',
-      paddingBottom: '6rem',
-      paddingLeft: '1.5rem',
-      paddingRight: '1.5rem',
-      backgroundColor: '#020617',
-      color: '#e2e8f0'
-    }}>
-      {/* Background Ornament */}
-      <div style={{ position: 'absolute', top: 0, right: 0, width: '50%', height: '100%', backgroundColor: 'rgba(212, 175, 55, 0.02)', zIndex: -10, filter: 'blur(100px)' }}></div>
+    <div className="relative min-h-screen bg-[#020617] text-[#e2e8f0] pt-32 pb-24 px-6 overflow-x-hidden">
+      {/* Visual Substrate Ornament */}
+      <div className="fixed top-0 right-0 w-2/3 h-full bg-[#d4af37]/[0.015] -z-10 blur-[120px] pointer-events-none" />
+      <div className="fixed bottom-0 left-0 w-1/2 h-2/3 bg-[#397789]/[0.01] -z-10 blur-[100px] pointer-events-none" />
 
-      <header style={{ maxWidth: '80rem', margin: '0 auto 5rem auto' }}>
-        <div style={{ fontFamily: 'Cinzel, serif', fontSize: '0.625rem', letterSpacing: '0.6em', color: '#d4af37', textTransform: 'uppercase' }}>
-          Department of Acquisitions
+      <header className="max-w-7xl mx-auto mb-24 flex flex-col md:flex-row justify-between items-end gap-8">
+        <div className="text-center md:text-left">
+          <div className="font-mono text-[10px] tracking-[0.6em] text-[#d4af37] uppercase mb-4 opacity-60">
+            System.Inventory_Module // GTOVD_PRIMARY
+          </div>
+          <h1 className="text-5xl md:text-8xl font-['Playfair_Display'] text-white lowercase tracking-tighter mb-4">
+            The <span className="italic text-[#d4af37]">Archive</span> Boutique
+          </h1>
+          <div className="h-px w-32 bg-[#d4af37]/20 mt-6 mx-auto md:mx-0" />
         </div>
-        <h1 style={{ fontSize: 'clamp(3rem, 8vw, 6rem)', fontFamily: 'Playfair Display, serif', color: 'white', textTransform: 'lowercase', tracking: '-0.05em', margin: '1rem 0' }}>
-          The <span style={{ fontStyle: 'italic', color: '#d4af37' }}>Treasury</span>
-        </h1>
-        <div style={{ height: '1px', width: '8rem', backgroundColor: 'rgba(212, 175, 55, 0.3)', marginTop: '2rem' }}></div>
-        <p style={{ maxWidth: '28rem', color: '#64748b', fontSize: '0.875rem', textTransform: 'uppercase', letterSpacing: '0.1em', lineHeight: 1.6, marginTop: '2rem' }}>
-          Unique artifacts sourced from independent American artisans. 
-          Hand-crafted legacy items for the modern explorer.
-        </p>
+        
+        <div className="md:max-w-xs text-right hidden md:block">
+           <p className="text-[9px] uppercase tracking-[0.2em] text-stone-500 leading-relaxed italic">
+             "Every synchronized node carries a unique signature. Acquisition requires authorization from the Lead Architect."
+           </p>
+        </div>
       </header>
 
-      <div style={{ 
-        maxWidth: '80rem', 
-        margin: '0 auto', 
-        display: 'grid', 
-        gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', 
-        gap: '4rem' 
-      }}>
-        {products.map((product) => (
-          <div key={product.id} style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-            <div style={{ 
-              position: 'relative', 
-              aspectRatio: '4/5', 
-              overflow: 'hidden', 
-              backgroundColor: '#0f172a',
-              border: '1px solid rgba(255, 255, 255, 0.05)',
-              transition: 'all 0.5s ease'
-            }}>
-              {product.images.nodes[0] ? (
-                <img 
-                  src={product.images.nodes[0].url} 
-                  alt={product.images.nodes[0].altText || product.title}
-                  style={{ width: '100%', height: '100%', objectFit: 'cover', filter: 'grayscale(100%)', transition: 'all 0.7s ease' }}
-                />
-              ) : (
-                <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <span style={{ fontFamily: 'Cinzel, serif', fontSize: '0.625rem', color: 'rgba(212, 175, 55, 0.2)', textTransform: 'uppercase', letterSpacing: '0.2em' }}>Image Pending</span>
-                </div>
-              )}
-              
-              <div style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(2, 6, 23, 0.4)', opacity: 0, transition: 'opacity 0.5s ease', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                 <form action={handleAcquire}>
-                  <input type="hidden" name="variantId" value={product.variants.nodes[0]?.id} />
-                  <button type="submit" style={{ padding: '0.75rem 2rem', backgroundColor: '#d4af37', color: '#020617', fontFamily: 'Cinzel, serif', fontSize: '0.625rem', letterSpacing: '0.2em', textTransform: 'uppercase', border: 'none', cursor: 'pointer' }}>
-                    Acquire Artifact
-                  </button>
-                </form>
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', borderBottom: '1px solid rgba(255, 255, 255, 0.05)', paddingBottom: '0.5rem' }}>
-                <h2 style={{ fontSize: '1.5rem', fontFamily: 'Playfair Display, serif', color: 'white', textTransform: 'uppercase', margin: 0 }}>
-                  {product.title}
-                </h2>
-                <span style={{ fontFamily: 'monospace', fontSize: '0.75rem', color: 'rgba(212, 175, 55, 0.6)' }}>
-                  {product.priceRange.minVariantPrice.amount} {product.priceRange.minVariantPrice.currencyCode}
-                </span>
-              </div>
-              <p style={{ fontSize: '0.625rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.15em', lineHeight: 1.6, margin: 0, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                {product.description}
-              </p>
-            </div>
+      {products.length > 0 ? (
+        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-20 mb-40">
+          {products.map((product) => (
+            <BoutiqueCard 
+              key={product.id}
+              id={product.id}
+              title={product.title}
+              description={product.description}
+              price={product.priceRange.minVariantPrice.amount}
+              currency={product.priceRange.minVariantPrice.currencyCode}
+              imageUrl={product.images.nodes[0]?.url}
+              handle={product.handle}
+              provenanceSnippet={product.tags?.includes('Provenance') ? "Immutable record detected in lore substrate." : undefined}
+              status={product.availableForSale ? 'AVAILABLE' : 'ACQUIRED'}
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="max-w-4xl mx-auto py-32 mb-40 flex flex-col items-center justify-center border-y border-[#d4af37]/5">
+          <div className="text-center mb-16">
+            <p className="font-['Cinzel'] text-[10px] text-[#d4af37]/40 uppercase tracking-[0.5em] mb-4">
+              Vault_Status: [ SEALED ]
+            </p>
+            <h2 className="text-2xl font-['Playfair_Display'] italic text-white/80">
+              Awaiting Node Synchronization
+            </h2>
           </div>
-        ))}
-      </div>
-      
-      {products.length === 0 && (
-        <div style={{ maxWidth: '80rem', margin: '0 auto', textAlign: 'center', padding: '10rem 0', border: '1px dashed rgba(255, 255, 255, 0.05)' }}>
-          <p style={{ fontFamily: 'Cinzel, serif', fontSize: '0.625rem', color: 'rgba(212, 175, 55, 0.3)', textTransform: 'uppercase', letterSpacing: '0.4em' }}>
-            The vault is currently awaiting replenishment...
-          </p>
+          <TreasuryWaitlist />
         </div>
       )}
 
-      <div style={{ textAlign: 'center', marginTop: '8rem' }}>
-        <Link href="/" style={{ color: 'rgba(212, 175, 55, 0.4)', textTransform: 'uppercase', letterSpacing: '0.4em', fontSize: '0.625rem', textDecoration: 'none' }}>
-          ← Return to Vault
+      {/* Engagement Substrate */}
+      {products.length > 0 && (
+        <div className="max-w-7xl mx-auto py-24 border-t border-[#d4af37]/10">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+            <div className="space-y-6">
+              <h3 className="font-['Playfair_Display'] text-3xl text-white italic">
+                Acquisition Authorization
+              </h3>
+              <p className="text-sm text-stone-400 font-mono leading-relaxed uppercase tracking-tight">
+                To request re-acquisition clearance for restricted artifacts, submit your agent identifier to the priority uplink.
+              </p>
+            </div>
+            <TreasuryWaitlist />
+          </div>
+        </div>
+      )}
+
+      <div className="max-w-7xl mx-auto mt-24 pt-12 border-t border-white/5 flex justify-between items-center text-[9px] uppercase tracking-[0.4em] text-stone-700">
+        <Link href="/" className="hover:text-[#d4af37] transition-colors no-underline">
+          ← Interface Root
+        </Link>
+        <Link href="/lore" className="hover:text-[#397789] transition-colors no-underline">
+          Authorize via Terminal →
         </Link>
       </div>
     </div>

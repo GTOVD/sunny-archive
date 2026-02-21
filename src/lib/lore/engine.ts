@@ -35,6 +35,7 @@ export class LoreEngine {
           this.createLine('system', 'AVAILABLE COMMANDS:'),
           this.createLine('output', 'LIST - Display all accessible lore fragments'),
           this.createLine('output', 'READ <id> - Decrypt and display a specific entry'),
+          this.createLine('output', 'RESONATE <id> - Attune to a relic pattern'),
           this.createLine('output', 'CLEAR - Purge terminal buffer'),
           this.createLine('output', 'WHOAMI - Display current authorization level'),
           this.createLine('system', 'END OF HELP.')
@@ -68,6 +69,9 @@ export class LoreEngine {
           this.createLine('output', `USER: ${state.currentUser || 'GUEST'}`),
           this.createLine('output', `CLEARANCE: ${state.currentUser === 'admin' ? 'LEVEL 2' : 'LEVEL 1'}`)
         ];
+
+      case 'resonate':
+        return [this.createLine('system', 'RESONANCE SYSTEM OFFLINE: AWAITING LORE SHIPMENT.')];
 
       default:
         return [this.createLine('error', `UNKNOWN COMMAND: ${cmd}. TYPE 'HELP' FOR LIST.`)];
