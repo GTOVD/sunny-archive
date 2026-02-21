@@ -11,6 +11,7 @@ interface HackingGameOptions {
  * useHackingGame Hook
  * Core logic for the Fallout-style terminal hacking game.
  * Implements Likeness scoring, Dud removal, and Attempt management.
+ * V2: Includes hint trigger support.
  */
 export const useHackingGame = ({ difficulty, wordList }: HackingGameOptions) => {
   const [targetWord, setTargetWord] = useState<string>('');
@@ -33,11 +34,9 @@ export const useHackingGame = ({ difficulty, wordList }: HackingGameOptions) => 
    * Initialize a new game session
    */
   const initGame = useCallback(() => {
-    // Filter by length and ensure uniqueness
     const validWords = Array.from(new Set(wordList.filter(w => w.length === wordLength)));
     
     if (validWords.length < 12 && validWords.length > 0) {
-      // Warning if not enough words provided for a full matrix, but continue
       setLogs(prev => [...prev, 'WARNING: REDUCED WORD BUFFER DETECTED']);
     }
 
@@ -79,7 +78,6 @@ export const useHackingGame = ({ difficulty, wordList }: HackingGameOptions) => 
 
     const guess = word.toUpperCase();
     
-    // Safety check for word length mismatch
     if (guess.length !== targetWord.length) {
       setLogs(prev => [...prev, `> ${guess}`, '> ERROR: STRING_LENGTH_MISMATCH']);
       return;
@@ -114,7 +112,7 @@ export const useHackingGame = ({ difficulty, wordList }: HackingGameOptions) => 
 
     const removedDud = duds[Math.floor(Math.random() * duds.length)];
     setDisplayWords(prev => prev.filter(w => w !== removedDud));
-    setLogs(prev => [...prev, '> DUD REMOVED.']);
+    setLogs(prev => [...prev, '> HINT_ACTIVE: DUD_PURGED.']);
   }, [status, displayWords, targetWord]);
 
   /**
@@ -123,7 +121,7 @@ export const useHackingGame = ({ difficulty, wordList }: HackingGameOptions) => 
   const resetAttempts = useCallback(() => {
     if (status !== 'active') return;
     setAttemptsRemaining(4);
-    setLogs(prev => [...prev, '> TRIES RESET.']);
+    setLogs(prev => [...prev, '> HINT_ACTIVE: ALLOWANCE_RESTORED.']);
   }, [status]);
 
   return {
