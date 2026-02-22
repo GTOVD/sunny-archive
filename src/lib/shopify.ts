@@ -6,7 +6,7 @@ import { CircuitBreaker } from "./recovery";
 const client = createStorefrontClient({
   storeDomain: envVars.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN || "placeholder.myshopify.com",
   publicStorefrontToken: envVars.NEXT_PUBLIC_SHOPIFY_STOREFRONT_API_TOKEN || "placeholder",
-  storefrontApiVersion: "2024-01",
+  storefrontApiVersion: "2025-10",
 });
 
 export const getStorefrontApiUrl = client.getStorefrontApiUrl;
@@ -293,4 +293,39 @@ export async function getProductByHandle(handle: string) {
 
   // Note: We might need to adjust ShopifyProductSchema if it doesn't include descriptionHtml or multiple images
   return data.product;
+}
+
+export async function getLoreMetadata() {
+  const query = `
+    query getLoreMetadata {
+      metaobjects(type: "lore_fragment", first: 20) {
+        nodes {
+          handle
+          title: field(key: "title") { value }
+          content: field(key: "content") { value }
+          clearance: field(key: "clearance") { value }
+          tags: field(key: "tags") { value }
+        }
+      }
+    }
+  `;
+
+  const { data, error, ok } = await storefrontFetch<{ metaobjects: { nodes: any[] } }>(query, {});
+
+  if (!ok) {
+    console.warn(`⚠️ Shopify API Errors (Lore): ${error}`);
+    return [];
+  }
+
+  if (!data?.metaobjects?.nodes) {
+    return [];
+  }
+
+  return data.metaobjects.nodes.map((node: any) => ({
+    id: node.handle.toUpperCase(),
+    title: node.title?.value || "UNKNOWN FRAGMENT",
+    content: node.content?.value || "DATA CORRUPTED",
+    clearance: node.clearance?.value || "RESTRICTED",
+    tags: node.tags?.value ? JSON.parse(node.tags.value) : []
+  }));
 }
