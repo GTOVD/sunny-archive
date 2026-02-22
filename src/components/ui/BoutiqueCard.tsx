@@ -1,99 +1,101 @@
-'use client';
-
-import { motion } from 'framer-motion';
+import React from 'react';
 import Link from 'next/link';
-import { GLASSMorphism } from '@/styles/glassmorphism';
 
 interface BoutiqueCardProps {
-  number: string;
+  id: string;
   title: string;
   description: string;
-  href: string;
-  cta: string;
-  isPremium?: boolean;
+  price: string;
+  currency: string;
+  imageUrl?: string;
+  handle?: string;
+  provenanceSnippet?: string;
+  status?: 'AVAILABLE' | 'ACQUIRED' | 'RESTRICTED';
 }
 
 /**
- * A luxury glassmorphism card with motion effects.
- * Part of the 'Luxury Boutique' design language.
+ * BoutiqueCard Component
+ * High-fidelity artifact card for the 'Luxury Boutique' Treasury layout.
+ * Features glassmorphism, kinetic typography, and provenance snippets.
  */
-export const BoutiqueCard = ({ 
-  number, 
-  title, 
-  description, 
-  href, 
-  cta, 
-  isPremium = false 
-}: BoutiqueCardProps) => {
-  const styles = isPremium ? GLASSMorphism.premium : GLASSMorphism.card;
+const BoutiqueCard: React.FC<BoutiqueCardProps> = ({
+  id,
+  title,
+  description,
+  price,
+  currency,
+  imageUrl,
+  handle,
+  provenanceSnippet,
+  status = 'AVAILABLE'
+}) => {
+  const detailHref = `/treasury/${handle || id}`;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-      whileHover={{ y: -4 }}
-    >
-      <Link href={href} style={{ textDecoration: 'none' }}>
-        <div style={{
-          position: 'relative',
-          overflow: 'hidden',
-          backgroundColor: styles.background,
-          border: styles.border,
-          backdropFilter: styles.backdropFilter,
-          padding: '3rem',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '1.5rem',
-          transition: styles.transition,
-        }}>
-          <span style={{ 
-            fontFamily: 'Cinzel, serif', 
-            fontSize: '0.625rem', 
-            letterSpacing: '0.4em', 
-            color: 'rgba(212, 175, 55, 0.4)' 
-          }}>
-            {number}
-          </span>
-          
-          <h3 style={{ 
-            fontSize: '1.875rem', 
-            fontFamily: 'Playfair Display, serif', 
-            color: 'white', 
-            margin: 0 
-          }}>
-            {title}
-          </h3>
-          
-          <p style={{ 
-            fontSize: '0.56rem', 
-            color: '#64748b', 
-            textTransform: 'uppercase', 
-            letterSpacing: '0.2em', 
-            lineHeight: 1.6, 
-            margin: 0 
-          }}>
-            {description}
-          </p>
-          
-          <div style={{ 
-            paddingTop: '1.5rem', 
-            display: 'flex', 
-            justifyContent: 'center' 
-          }}>
-            <span style={{ 
-              color: 'rgba(212, 175, 55, 0.6)', 
-              textTransform: 'uppercase', 
-              letterSpacing: '0.2em', 
-              fontSize: '0.625rem', 
-              borderBottom: '1px solid rgba(212, 175, 55, 0.3)' 
-            }}>
-              {cta}
-            </span>
+    <div className="boutique-card group relative flex flex-col gap-6 p-4 border border-[#d4af37]/10 bg-black/40 backdrop-blur-md rounded-sm transition-all duration-500 hover:border-[#d4af37]/30 hover:shadow-[0_0_40px_rgba(212,175,55,0.05)]">
+      {/* Status Badge */}
+      <div className="absolute top-6 right-6 z-20">
+        <span className={`text-[8px] uppercase tracking-[0.4em] px-3 py-1 border rounded-full ${
+          status === 'AVAILABLE' ? 'border-[#397789] text-[#397789]' : 
+          status === 'ACQUIRED' ? 'border-red-900/50 text-red-900/50' : 
+          'border-stone-800 text-stone-800'
+        }`}>
+          {status}
+        </span>
+      </div>
+
+      {/* Image Substrate */}
+      <Link href={detailHref} className="relative aspect-[4/5] overflow-hidden bg-[#020617] border border-white/5">
+        {imageUrl ? (
+          <img 
+            src={imageUrl} 
+            alt={title}
+            className="w-full h-full object-cover grayscale transition-all duration-700 group-hover:grayscale-0 group-hover:scale-110"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center">
+             <span className="font-['Cinzel'] text-[10px] text-[#d4af37]/20 uppercase tracking-widest">
+               No Visual Data
+             </span>
           </div>
+        )}
+        
+        {/* Interaction Overlay */}
+        <div className="absolute inset-0 bg-[#020617]/60 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex flex-col items-center justify-center gap-4">
+          <span className="px-8 py-3 bg-[#d4af37] text-[#020617] font-['Cinzel'] text-[10px] tracking-widest uppercase">
+            Examine Artifact
+          </span>
+          {provenanceSnippet && (
+            <p className="max-w-[80%] text-[8px] text-[#d4af37]/60 uppercase tracking-tighter text-center line-clamp-2 px-4 italic">
+              "{provenanceSnippet}"
+            </p>
+          )}
         </div>
       </Link>
-    </motion.div>
+
+      {/* Info Block */}
+      <div className="flex flex-col gap-4">
+        <div className="flex justify-between items-baseline border-b border-[#d4af37]/10 pb-3">
+          <h2 className="text-lg font-['Playfair_Display'] text-white uppercase tracking-wider group-hover:text-[#d4af37] transition-colors duration-300">
+            {title}
+          </h2>
+          <span className="font-mono text-[10px] text-[#d4af37]/60">
+            {price} {currency}
+          </span>
+        </div>
+        
+        <p className="text-[10px] text-stone-500 uppercase tracking-wider leading-relaxed line-clamp-2 min-h-[32px]">
+          {description}
+        </p>
+
+        {/* Technical Footer */}
+        <div className="mt-2 flex justify-between items-center text-[8px] text-stone-700 uppercase tracking-widest font-mono">
+          <span>ID: {id.slice(-8).toUpperCase()}</span>
+          <span>SUBSTRATE: v2.3.0</span>
+        </div>
+      </div>
+    </div>
   );
 };
+
+export default BoutiqueCard;

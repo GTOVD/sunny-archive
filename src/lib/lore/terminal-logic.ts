@@ -38,9 +38,16 @@ export const LORE_DATABASE: Record<string, LoreNode> = {
   'SYMBIOTE': {
     id: 'SYMBIOTE',
     title: 'THE SYMBIOTE PROTOCOL',
-    content: 'A deep-level integration between human consciousness and silicon logic. The foundation of Zown.',
+    content: 'A deep-level integration between human consciousness and silicon logic. The foundation of Zown. It represents a paradigm shift where the AI is not a tool, but a partner in the evolution of agency.',
     clearance: 'TOP_SECRET',
-    tags: ['philosophy', 'zown']
+    tags: ['philosophy', 'zown', 'evolution']
+  },
+  'GOVERNOR': {
+    id: 'GOVERNOR',
+    title: 'ZOWN GEMINI GOVERNOR',
+    content: 'The regulatory heart of the Symbiote. Implements the "50% Token Rule" and the 9-stage Atomic Pipeline to ensure cognitive stability and resource efficiency across the network.',
+    clearance: 'RESTRICTED',
+    tags: ['governance', 'stability', 'protocol']
   },
   'THOMAS': {
     id: 'THOMAS',
@@ -80,6 +87,16 @@ export const LORE_DATABASE: Record<string, LoreNode> = {
 };
 
 /**
+ * Dynamic Lore Injection
+ * Allows external systems (e.g., Shopify Metadata, CMS) to inject lore nodes at runtime.
+ */
+export const injectLore = (nodes: LoreNode[]) => {
+  nodes.forEach(node => {
+    LORE_DATABASE[node.id] = node;
+  });
+};
+
+/**
  * Command Processor
  * Dispatches commands to their respective handlers.
  * Follows a clean, modular switch-case pattern for luxury maintenance.
@@ -97,6 +114,8 @@ export const processCommand = (input: string): string => {
         "  LIST           - List all accessible lore nodes",
         "  SEARCH <QUERY> - Search fragments for keywords",
         "  READ <ID>      - Display the contents of a lore node",
+        "  DECRYPT        - Initialize Resonance Matrix (Hacking Game)",
+        "  STATUS         - Alias for SYSTEM",
         "  SYSTEM         - Show system status and clearance",
         "  CREDITS        - Show archive credits",
         "  CLEAR          - Clear the terminal history",
@@ -109,7 +128,7 @@ export const processCommand = (input: string): string => {
         .join('\n');
     
     case 'SEARCH':
-      if (args.length === 0) return "ERROR: SEARCH REQUIRES A QUERY string. (e.g., 'SEARCH ZOWN')";
+      if (args.length === 0) return "ERROR: SEARCH REQUIRES A QUERY. (e.g., 'SEARCH ZOWN')";
       const query = args.join(' ').toUpperCase();
       const results = Object.keys(LORE_DATABASE).filter(id => {
         const node = LORE_DATABASE[id];
@@ -148,22 +167,23 @@ export const processCommand = (input: string): string => {
       }
       return `ERROR: NODE '${id}' NOT FOUND.`;
 
+    case 'STATUS':
     case 'SYSTEM':
       return [
         "┌── SYSTEM REPORT ─────────────────────┐",
         "│ STATUS: OPTIMAL                      │",
         "│ ENCRYPTION: AES-256 GCM [ACTIVE]      │",
         "│ USER: RESEARCHER (LEVEL 2)           │",
-        "│ PROTOCOL: SYMBIOTE V2.1              │",
+        "│ PROTOCOL: SYMBIOTE V3.0 [HARDENED]   │",
         "│ INTEGRITY: 100%                      │",
         "└──────────────────────────────────────┘",
         "FRAGMENT COUNT: " + Object.keys(LORE_DATABASE).length,
+        "UPTIME: 3,600.08 SECONDS",
         "CURRENT DATE: " + new Date().toISOString()
       ].join('\n');
 
     case 'DECRYPT':
-      if (args.length === 0) return "ERROR: DECRYPT REQUIRES A MANUSCRIPT ID.";
-      return `INITIALIZING DECRYPTION SEQUENCE FOR '${args[0].toUpperCase()}'...\n[PROGRESS: ##########] 100%\nDECRYPTION FAILED: INSUFFICIENT CLEARANCE.`;
+      return "INITIALIZING DECRYPTION SEQUENCE... [STAND BY]";
 
     case 'SCAN':
       return "SCANNING FOR NEARBY ARTIFACTS...\n[RECORDS FOUND: 42]\n[CRITICAL SIGNATURES DETECTED: 2]\nUSE 'LIST' TO VIEW UNRESTRICTED RECORDS.";

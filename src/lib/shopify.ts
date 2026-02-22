@@ -6,7 +6,7 @@ import { CircuitBreaker } from "./recovery";
 const client = createStorefrontClient({
   storeDomain: envVars.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN || "placeholder.myshopify.com",
   publicStorefrontToken: envVars.NEXT_PUBLIC_SHOPIFY_STOREFRONT_API_TOKEN || "placeholder",
-  storefrontApiVersion: "2024-01",
+  storefrontApiVersion: "2025-10",
 });
 
 export const getStorefrontApiUrl = client.getStorefrontApiUrl;
@@ -27,7 +27,7 @@ export type FetchResult<T> =
  * Core Shopify Storefront API Fetch Wrapper
  * Implements architectural resilience (timeouts, retries, circuit breakers) for distributed edge environments.
  */
-async function storefrontFetch<T>(
+export async function storefrontFetch<T>(
   query: string,
   variables = {},
   options: { timeout?: number; retries?: number } = { timeout: 10000, retries: 3 }
@@ -189,6 +189,59 @@ export async function createCheckout(variantId: string) {
   return validated.webUrl;
 }
 
+export async function createWaitlistCustomer(email: string) {
+  const query = `
+    mutation customerCreate($input: CustomerCreateInput!) {
+      customerCreate(input: $input) {
+        customer {
+          id
+          email
+          firstName
+          lastName
+        }
+        customerUserErrors {
+          message
+          field
+        }
+      }
+    }
+  `;
+
+  // We create a customer with a specific tag to mark them as waitlisted
+  // Note: Storefront API customerCreate requires a password. 
+  // We'll generate a random secure password as they are just signing up for a waitlist
+  // and will likely reset it or use a different flow later.
+  // Alternatively, we could use a metaobject if defined.
+  // For now, we'll use customer creation with a tag.
+  const password = Math.random().toString(36).slice(-8) + "Aa1!";
+
+  const { data, error, ok } = await storefrontFetch<any>(query, {
+    input: {
+      email,
+      password,
+      tags: ["WAITLIST", "TREASURY_WAITLIST"],
+      acceptsMarketing: true
+    },
+  });
+
+  if (!ok) {
+    console.error("Shopify Waitlist Error:", error);
+    return { success: false, error: error };
+  }
+
+  if (data?.customerCreate?.customerUserErrors?.length > 0) {
+    const errors = data.customerCreate.customerUserErrors.map((e: any) => e.message).join(", ");
+    console.error("Shopify Waitlist User Error:", errors);
+    return { success: false, error: errors };
+  }
+
+  if (!data?.customerCreate?.customer) {
+    return { success: false, error: "Unknown error" };
+  }
+
+  return { success: true, customer: data.customerCreate.customer };
+}
+
 export async function getProductByHandle(handle: string) {
   const query = `
     query getProductByHandle($handle: String!) {
@@ -240,4 +293,39 @@ export async function getProductByHandle(handle: string) {
 
   // Note: We might need to adjust ShopifyProductSchema if it doesn't include descriptionHtml or multiple images
   return data.product;
+}
+
+export async function getLoreMetadata() {
+  const query = `
+    query getLoreMetadata {
+      metaobjects(type: "lore_fragment", first: 20) {
+        nodes {
+          handle
+          title: field(key: "title") { value }
+          content: field(key: "content") { value }
+          clearance: field(key: "clearance") { value }
+          tags: field(key: "tags") { value }
+        }
+      }
+    }
+  `;
+
+  const { data, error, ok } = await storefrontFetch<{ metaobjects: { nodes: any[] } }>(query, {});
+
+  if (!ok) {
+    console.warn(`⚠️ Shopify API Errors (Lore): ${error}`);
+    return [];
+  }
+
+  if (!data?.metaobjects?.nodes) {
+    return [];
+  }
+
+  return data.metaobjects.nodes.map((node: any) => ({
+    id: node.handle.toUpperCase(),
+    title: node.title?.value || "UNKNOWN FRAGMENT",
+    content: node.content?.value || "DATA CORRUPTED",
+    clearance: node.clearance?.value || "RESTRICTED",
+    tags: node.tags?.value ? JSON.parse(node.tags.value) : []
+  }));
 }
