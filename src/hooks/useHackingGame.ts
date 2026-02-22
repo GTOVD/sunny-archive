@@ -11,7 +11,6 @@ interface HackingGameOptions {
  * useHackingGame Hook
  * Core logic for the Fallout-style terminal hacking game.
  * Implements Likeness scoring, Dud removal, and Attempt management.
- * V2: Includes hint trigger support.
  */
 export const useHackingGame = ({ difficulty, wordList }: HackingGameOptions) => {
   const [targetWord, setTargetWord] = useState<string>('');
