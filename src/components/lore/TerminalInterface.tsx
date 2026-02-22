@@ -26,14 +26,29 @@ export const TerminalInterface: React.FC<TerminalInterfaceProps> = ({ initialLor
   useEffect(() => {
     if (initialLore && initialLore.length > 0) {
       injectLore(initialLore);
+      // Optional: Add a system log about the sync without cluttering the initial view
+      // This will appear if the user scrolls up or after they type a command, technically it's just in state
+      // Better to just let the STATUS command reflect it.
     }
   }, [initialLore]);
 
   // Boot sequence simulation
   useEffect(() => {
-    const timer = setTimeout(() => setIsBooted(true), 1200);
+    const timer = setTimeout(() => {
+      setIsBooted(true);
+      if (initialLore && initialLore.length > 0) {
+        setHistory(prev => [
+          ...prev, 
+          { 
+            input: 'SYS_EVENT', 
+            output: `> REMOTE UPLINK ESTABLISHED.\n> DOWNLOADED ${initialLore.length} FRAGMENTS FROM ARCHIVE CORE.`, 
+            timestamp: Date.now() 
+          }
+        ]);
+      }
+    }, 1200);
     return () => clearTimeout(timer);
-  }, []);
+  }, [initialLore]);
 
   // Auto-scroll to bottom on history change
   useEffect(() => {

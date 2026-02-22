@@ -6,7 +6,7 @@ import { CircuitBreaker } from "./recovery";
 const client = createStorefrontClient({
   storeDomain: envVars.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN || "placeholder.myshopify.com",
   publicStorefrontToken: envVars.NEXT_PUBLIC_SHOPIFY_STOREFRONT_API_TOKEN || "placeholder",
-  storefrontApiVersion: "2024-01",
+  storefrontApiVersion: "2025-10",
 });
 
 export const getStorefrontApiUrl = client.getStorefrontApiUrl;
