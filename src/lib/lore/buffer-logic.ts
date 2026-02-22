@@ -1,34 +1,34 @@
-import { getProducts } from './shopify';
+import { getProducts } from '../shopify';
 
 /**
- * Metadata Extraction Logic
- * Extracts 'High-Entropy' words from current Shopify artifact titles and descriptions.
- * Cleans and filters for relevant gameplay lengths (4-12 characters).
+ * Dynamic Lore Buffer Utility
+ * Synchronizes the hacking game word-buffer with actual Archive artifact metadata.
  */
-export async function getLoreBufferWords(): Promise<string[]> {
-  const products = await getProducts(50);
-  
-  if (!products || products.length === 0) {
-    return [];
-  }
-
-  const wordSet = new Set<string>();
-  const wordRegex = /[A-Z]{4,12}/gi; // Match words 4-12 characters long
-
-  products.forEach(product => {
-    const text = `${product.title} ${product.description}`;
-    const matches = text.match(wordRegex);
+export async function getLoreBuffer(): Promise<string[]> {
+  try {
+    const products = await getProducts(50);
     
-    if (matches) {
-      matches.forEach(word => {
-        const cleaned = word.toUpperCase();
-        if (cleaned.length >= 4 && cleaned.length <= 12) {
-          wordSet.add(cleaned);
-        }
-      });
-    }
-  });
+    // Extract words from titles and tags, focusing on lore-heavy identifiers
+    const words = products.flatMap((p: any) => {
+      const titleWords = p.title.toUpperCase().split(/\s+/).filter((w: string) => w.length >= 4 && w.length <= 8);
+      // Optional: tags if available in your schema
+      return titleWords;
+    });
 
-  // Convert to array and shuffle
-  return Array.from(wordSet).sort(() => Math.random() - 0.5);
+    // Deduplicate and filter for alphanumeric consistency
+    const cleanBuffer = Array.from(new Set(words))
+      .filter((w: unknown) => typeof w === 'string' && /^[A-Z0-9]+$/.test(w))
+      .sort();
+
+    return (cleanBuffer as string[]).length >= 20 ? (cleanBuffer as string[]) : FALLBACK_BUFFER;
+  } catch (error) {
+    console.error('LORE_BUFFER_SYNC_FAILURE:', error);
+    return FALLBACK_BUFFER;
+  }
 }
+
+const FALLBACK_BUFFER = [
+  'VAULT', 'LORE', 'NEXUS', 'VOID', 'GTOVD', 'SUNNY', 'SYNC', 'ARCH',
+  'SYMBIO', 'PROTO', 'CORE', 'BOND', 'PULSE', 'GRID', 'LINK', 'GATED',
+  'AUTHOR', 'SIGNAL', 'RELIC', 'NODE', 'PHASE', 'TRACE', 'ULINK'
+];

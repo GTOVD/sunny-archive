@@ -9,17 +9,18 @@ import { LoreNode } from '@/components/lore/LoreTypes';
 
 interface InteractiveTerminalProps {
   dynamicLore: LoreNode[];
+  wordBuffer?: string[];
 }
 
 /**
  * Interactive Terminal Wrapper
  * Handles the game state and renders the terminal UI.
  */
-export default function InteractiveTerminal({ dynamicLore }: InteractiveTerminalProps) {
+export default function InteractiveTerminal({ dynamicLore, wordBuffer }: InteractiveTerminalProps) {
   const [isUnlocked, setIsUnlocked] = useState(false);
   
-  // Mock word list for the hacking game - will be expanded in Cycle 58
-  const wordList = [
+  // Use passed word buffer or fallback to local static list
+  const wordList = wordBuffer && wordBuffer.length > 0 ? wordBuffer : [
     'VAULT', 'LORE', 'NEXUS', 'VOID', 'GTOVD', 'SUNNY', 'SYNC', 'ARCH',
     'SYMBIO', 'PROTO', 'CORE', 'BOND', 'PULSE', 'GRID', 'LINK', 'GATED'
   ];
