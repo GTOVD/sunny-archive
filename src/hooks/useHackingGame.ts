@@ -1,16 +1,17 @@
 import { useState, useCallback, useMemo } from 'react';
+import { getWordsForDifficulty } from '@/lib/lore/buffer-logic';
 
 export type GameStatus = 'idle' | 'active' | 'success' | 'locked';
 
 interface HackingGameOptions {
   difficulty: 'easy' | 'medium' | 'hard';
-  wordList: string[];
+  wordList: string[]; // Global buffer of metadata-derived words
 }
 
 /**
  * useHackingGame Hook
  * Core logic for the Fallout-style terminal hacking game.
- * Implements Likeness scoring, Dud removal, and Attempt management.
+ * V3: Consumes dynamic artifact metadata with difficulty-aware length filtering.
  */
 export const useHackingGame = ({ difficulty, wordList }: HackingGameOptions) => {
   const [targetWord, setTargetWord] = useState<string>('');
@@ -19,35 +20,28 @@ export const useHackingGame = ({ difficulty, wordList }: HackingGameOptions) => 
   const [status, setStatus] = useState<GameStatus>('idle');
   const [logs, setLogs] = useState<string[]>([]);
 
-  // Calculate word length based on difficulty
-  const wordLength = useMemo(() => {
+  // Configure constraints based on difficulty
+  const config = useMemo(() => {
     switch (difficulty) {
-      case 'easy': return 4;
-      case 'medium': return 6;
-      case 'hard': return 8;
-      default: return 6;
+      case 'easy': return { length: 4, count: 12 };
+      case 'medium': return { length: 6, count: 12 };
+      case 'hard': return { length: 8, count: 12 };
+      default: return { length: 6, count: 12 };
     }
   }, [difficulty]);
 
   /**
-   * Initialize a new game session
+   * Initialize a new game session using the filtered buffer
    */
   const initGame = useCallback(() => {
-    const validWords = Array.from(new Set(wordList.filter(w => w.length === wordLength)));
-    
-    if (validWords.length < 12 && validWords.length > 0) {
-      setLogs(prev => [...prev, 'WARNING: REDUCED WORD BUFFER DETECTED']);
-    }
-
-    const filteredWords = validWords
-      .sort(() => Math.random() - 0.5)
-      .slice(0, 12);
-
-    if (filteredWords.length === 0) {
-      setLogs(prev => [...prev, 'ERROR: NO COMPATIBLE WORDS FOUND']);
+    if (!wordList || wordList.length === 0) {
+      setLogs(prev => [...prev, 'ERROR: LORE_BUFFER_EMPTY']);
       setStatus('idle');
       return;
     }
+
+    // Use the hardened selection logic to get difficulty-compliant words
+    const filteredWords = getWordsForDifficulty(wordList, config.length, config.count);
 
     const selected = filteredWords[Math.floor(Math.random() * filteredWords.length)];
     setTargetWord(selected.toUpperCase());
@@ -55,7 +49,7 @@ export const useHackingGame = ({ difficulty, wordList }: HackingGameOptions) => 
     setAttemptsRemaining(4);
     setStatus('active');
     setLogs(['TERMINAL READY. SELECT OVERRIDE CODE.']);
-  }, [wordList, wordLength]);
+  }, [wordList, config]);
 
   /**
    * Calculate Likeness score (positional character matching)
