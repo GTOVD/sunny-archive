@@ -1,3 +1,0 @@
-module.exports=[11946,(a,b,c)=>{let{createClientModuleProxy:d}=a.r(36538);a.n(d("[project]/sunny-archive/node_modules/next/dist/client/components/builtin/global-error.js <module evaluation>"))},99203,(a,b,c)=>{let{createClientModuleProxy:d}=a.r(36538);a.n(d("[project]/sunny-archive/node_modules/next/dist/client/components/builtin/global-error.js"))},32008,a=>{"use strict";a.i(11946);var b=a.i(99203);a.n(b)}];
-
-//# sourceMappingURL=77cb7_next_dist_client_components_builtin_global-error_ea1a69f2.js.map
