@@ -87,6 +87,16 @@ export const LORE_DATABASE: Record<string, LoreNode> = {
 };
 
 /**
+ * Dynamic Lore Injection
+ * Allows external systems (e.g., Shopify Metadata, CMS) to inject lore nodes at runtime.
+ */
+export const injectLore = (nodes: LoreNode[]) => {
+  nodes.forEach(node => {
+    LORE_DATABASE[node.id] = node;
+  });
+};
+
+/**
  * Command Processor
  * Dispatches commands to their respective handlers.
  * Follows a clean, modular switch-case pattern for luxury maintenance.

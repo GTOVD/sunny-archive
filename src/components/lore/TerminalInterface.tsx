@@ -7,16 +7,27 @@
  */
 
 import React, { useState, useEffect, useRef } from 'react';
-import { TerminalCommand } from './LoreTypes';
-import { INITIAL_GREETING, processCommand } from '../../lib/lore/terminal-logic';
+import { TerminalCommand, LoreNode } from './LoreTypes';
+import { INITIAL_GREETING, processCommand, injectLore } from '../../lib/lore/terminal-logic';
 import Typewriter from './Typewriter';
 
-export const TerminalInterface: React.FC = () => {
+interface TerminalInterfaceProps {
+  initialLore?: LoreNode[];
+}
+
+export const TerminalInterface: React.FC<TerminalInterfaceProps> = ({ initialLore }) => {
   const [history, setHistory] = useState<TerminalCommand[]>([]);
   const [input, setInput] = useState('');
   const [isBooted, setIsBooted] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const terminalRef = useRef<HTMLDivElement>(null);
+
+  // Inject dynamic lore on mount
+  useEffect(() => {
+    if (initialLore && initialLore.length > 0) {
+      injectLore(initialLore);
+    }
+  }, [initialLore]);
 
   // Boot sequence simulation
   useEffect(() => {

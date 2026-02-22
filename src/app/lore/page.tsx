@@ -51,6 +51,18 @@ export default function LorePage() {
     initGame();
   };
 
+  // MOCK: Dynamic Lore Injection (Cycle 54)
+  // In production, this will be fetched from Shopify Metafields via API
+  const dynamicLore = [
+    {
+      id: 'CYCLE_54',
+      title: 'CYCLE 54: LORE INJECTION',
+      content: 'The terminal now accepts dynamic content injection. This node was injected at runtime.',
+      clearance: 'UNRESTRICTED',
+      tags: ['cycle-54', 'feature', 'dynamic']
+    }
+  ];
+
   return (
     <div className="min-h-screen bg-[#020617] text-[#397789] p-4 md:p-8 pt-24 overflow-hidden font-mono">
       {/* Background Phosphor Glow */}
@@ -82,7 +94,7 @@ export default function LorePage() {
               <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.1)_50%),linear-gradient(90deg,rgba(255,0,0,0.02),rgba(0,255,0,0.01),rgba(0,0,255,0.02))] z-10 bg-[length:100%_3px,3px_100%]" />
               <div className="absolute inset-0 pointer-events-none shadow-[inset_0_0_100px_rgba(0,0,0,0.5)] z-10" />
               <div className="p-1">
-                 <TerminalInterface />
+                 <TerminalInterface initialLore={dynamicLore} />
               </div>
             </div>
           ) : (
