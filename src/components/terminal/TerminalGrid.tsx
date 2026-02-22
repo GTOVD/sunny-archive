@@ -61,19 +61,20 @@ export const TerminalGrid: React.FC<TerminalGridProps> = ({
       const address = (HEX_START + i * 12).toString(16).toUpperCase().padStart(4, '0');
       const content: (string | { word: string } | { hint: SymbolSequence })[] = [];
       let currentLength = 0;
-
-      // Temporary string to detect hints on this line later
       let lineStr = '';
 
       while (currentLength < lineLength) {
-        // Place word
-        if (wordIndex < displayWords.length && Math.random() > 0.8 && (lineLength - currentLength) >= displayWords[wordIndex].length) {
+        // Higher probability for words if we are behind schedule
+        const remainingLines = totalLines - i;
+        const remainingWords = displayWords.length - wordIndex;
+        const wordChance = (remainingWords / (remainingLines * 2)) + 0.1;
+
+        if (wordIndex < displayWords.length && Math.random() < wordChance && (lineLength - currentLength) >= displayWords[wordIndex].length) {
           const word = displayWords[wordIndex];
           content.push({ word });
           currentLength += word.length;
           wordIndex++;
         } else {
-          // Place random symbol
           const char = SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)];
           content.push(char);
           lineStr += char;
@@ -81,13 +82,22 @@ export const TerminalGrid: React.FC<TerminalGridProps> = ({
         }
       }
 
-      // Detect symbol sequences (hints) on the current line's noise
+      // Procedural Hint Injection: Force a valid symbol sequence if none detected naturally
       const detectedHints = findSymbolSequences(lineStr);
-      if (detectedHints.length > 0 && Math.random() > 0.5) {
+      if (detectedHints.length > 0) {
+        // Naturally occurring hint found
         const hint = detectedHints[0];
-        // For simplicity in this procedural pass, we just mark the first detected hint
-        // In a high-fidelity pass, we would replace the specific symbol spans with a hint object
-        // For now, let's just stick to word selection and global symbol click chance
+        // In a future high-fidelity pass, we would replace these spans. 
+        // For now, handleSymbolClick manages the logic globally on symbols.
+      } else if (Math.random() > 0.85) {
+        // Inject a forced sequence for gameplay variety
+        const pairs = [['[', ']'], ['<', '>'], ['(', ')'], ['{', '}']];
+        const [open, close] = pairs[Math.floor(Math.random() * pairs.length)];
+        const noise = SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)];
+        // Replace last 3 symbols with a forced hint if space permits
+        if (content.length >= 3 && typeof content[content.length-1] === 'string') {
+          content.splice(content.length - 3, 3, open, noise, close);
+        }
       }
 
       lines.push({ address: `0x${address}`, content });
