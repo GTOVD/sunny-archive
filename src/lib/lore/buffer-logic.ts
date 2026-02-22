@@ -1,38 +1,34 @@
-import { getProducts } from '@/lib/shopify';
+import { getProducts } from './shopify';
 
 /**
- * Dynamic Lore Buffer Utility
- * Synchronizes the hacking game word-buffer with actual Archive artifact metadata.
+ * Metadata Extraction Logic
+ * Extracts 'High-Entropy' words from current Shopify artifact titles and descriptions.
+ * Cleans and filters for relevant gameplay lengths (4-12 characters).
  */
-export async function getLoreBuffer(): Promise<string[]> {
-  try {
-    const products = await getProducts(50);
-    
-    // Extract words from titles and tags, focusing on lore-heavy identifiers
-    const words = products.flatMap(p => {
-      const titleWords = p.title.toUpperCase().split(/\s+/).filter(w => w.length >= 4 && w.length <= 8);
-      const loreTags = p.tags
-        ?.filter(t => !t.includes(':')) // Skip structured provenance tags
-        .map(t => t.toUpperCase())
-        .filter(t => t.length >= 4 && t.length <= 8) || [];
-      
-      return [...titleWords, ...loreTags];
-    });
-
-    // Deduplicate and filter for alphanumeric consistency
-    const cleanBuffer = Array.from(new Set(words))
-      .filter(w => /^[A-Z0-9]+$/.test(w))
-      .sort();
-
-    return cleanBuffer.length >= 20 ? cleanBuffer : FALLBACK_BUFFER;
-  } catch (error) {
-    console.error('LORE_BUFFER_SYNC_FAILURE:', error);
-    return FALLBACK_BUFFER;
+export async function getLoreBufferWords(): Promise<string[]> {
+  const products = await getProducts(50);
+  
+  if (!products || products.length === 0) {
+    return [];
   }
-}
 
-const FALLBACK_BUFFER = [
-  'VAULT', 'LORE', 'NEXUS', 'VOID', 'GTOVD', 'SUNNY', 'SYNC', 'ARCH',
-  'SYMBIO', 'PROTO', 'CORE', 'BOND', 'PULSE', 'GRID', 'LINK', 'GATED',
-  'AUTHOR', 'SIGNAL', 'RELIC', 'NODE', 'PHASE', 'TRACE', 'ULINK'
-];
+  const wordSet = new Set<string>();
+  const wordRegex = /[A-Z]{4,12}/gi; // Match words 4-12 characters long
+
+  products.forEach(product => {
+    const text = `${product.title} ${product.description}`;
+    const matches = text.match(wordRegex);
+    
+    if (matches) {
+      matches.forEach(word => {
+        const cleaned = word.toUpperCase();
+        if (cleaned.length >= 4 && cleaned.length <= 12) {
+          wordSet.add(cleaned);
+        }
+      });
+    }
+  });
+
+  // Convert to array and shuffle
+  return Array.from(wordSet).sort(() => Math.random() - 0.5);
+}
