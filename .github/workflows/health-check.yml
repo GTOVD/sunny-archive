@@ -18,6 +18,7 @@ jobs:
         id: smoke_test
         env:
           BYPASS_TOKEN: ${{ secrets.VERCEL_PROTECTION_BYPASS_TOKEN }}
+          INTERNAL_KEY: ${{ secrets.INTERNAL_API_KEY }}
         run: |
           TARGET_URL="${{ github.event.deployment_status.target_url }}"
           HEALTH_URL="${TARGET_URL%/}/api/health"
@@ -28,6 +29,8 @@ jobs:
           HEADER_ARG=""
           if [ ! -z "$BYPASS_TOKEN" ]; then
             HEADER_ARG="-H \"x-vercel-protection-bypass: $BYPASS_TOKEN\""
+          elif [ ! -z "$INTERNAL_KEY" ]; then
+            HEADER_ARG="-H \"Authorization: Bearer $INTERNAL_KEY\""
           fi
           
           # Use a loop for retries (5 attempts)

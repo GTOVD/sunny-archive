@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { ShopifyProduct } from '@/lib/schema';
-import { getProducts } from '@/lib/shopify';
+import { getProducts, createCheckout } from '@/lib/shopify';
+import { redirect } from 'next/navigation';
 import BoutiqueCard from '@/components/ui/BoutiqueCard';
 import TreasuryWaitlist from '@/components/artifact/TreasuryWaitlist';
 
@@ -11,6 +12,17 @@ import TreasuryWaitlist from '@/components/artifact/TreasuryWaitlist';
  */
 export default async function TreasuryPage() {
   const products: ShopifyProduct[] = await getProducts(12);
+
+  async function handleAcquire(formData: FormData) {
+    'use server';
+    const variantId = formData.get('variantId') as string;
+    if (!variantId) return;
+    
+    const checkoutUrl = await createCheckout(variantId);
+    if (checkoutUrl) {
+      redirect(checkoutUrl);
+    }
+  }
 
   return (
     <div className="relative min-h-screen bg-[#020617] text-[#e2e8f0] pt-32 pb-24 px-6 overflow-x-hidden">
@@ -39,18 +51,32 @@ export default async function TreasuryPage() {
       {products.length > 0 ? (
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-20 mb-40">
           {products.map((product) => (
-            <BoutiqueCard 
-              key={product.id}
-              id={product.id}
-              title={product.title}
-              description={product.description}
-              price={product.priceRange.minVariantPrice.amount}
-              currency={product.priceRange.minVariantPrice.currencyCode}
-              imageUrl={product.images.nodes[0]?.url}
-              handle={product.handle}
-              provenanceSnippet={product.tags?.includes('Provenance') ? "Immutable record detected in lore substrate." : undefined}
-              status={product.availableForSale ? 'AVAILABLE' : 'ACQUIRED'}
-            />
+            <div key={product.id} className="relative group">
+              <BoutiqueCard 
+                id={product.id}
+                title={product.title}
+                description={product.description}
+                price={product.priceRange.minVariantPrice.amount}
+                currency={product.priceRange.minVariantPrice.currencyCode}
+                imageUrl={product.images.nodes[0]?.url}
+                handle={product.handle}
+                provenanceSnippet={product.tags?.includes('Provenance') ? "Immutable record detected in lore substrate." : undefined}
+                status={product.availableForSale ? 'AVAILABLE' : 'ACQUIRED'}
+              />
+              {product.availableForSale && (
+                <div className="mt-4 flex justify-end">
+                  <form action={handleAcquire}>
+                    <input type="hidden" name="variantId" value={product.variants.nodes[0]?.id} />
+                    <button 
+                      type="submit" 
+                      className="px-8 py-3 bg-[#d4af37]/10 border border-[#d4af37]/30 text-[#d4af37] font-['Cinzel'] text-[10px] uppercase tracking-[0.2em] hover:bg-[#d4af37] hover:text-[#020617] transition-all duration-300"
+                    >
+                      Acquire Node
+                    </button>
+                  </form>
+                </div>
+              )}
+            </div>
           ))}
         </div>
       ) : (
