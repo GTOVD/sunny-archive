@@ -87,6 +87,16 @@ export const LORE_DATABASE: Record<string, LoreNode> = {
 };
 
 /**
+ * Dynamic Lore Injection
+ * Allows external systems (e.g., Shopify Metadata, CMS) to inject lore nodes at runtime.
+ */
+export const injectLore = (nodes: LoreNode[]) => {
+  nodes.forEach(node => {
+    LORE_DATABASE[node.id] = node;
+  });
+};
+
+/**
  * Command Processor
  * Dispatches commands to their respective handlers.
  * Follows a clean, modular switch-case pattern for luxury maintenance.
@@ -104,6 +114,7 @@ export const processCommand = (input: string): string => {
         "  LIST           - List all accessible lore nodes",
         "  SEARCH <QUERY> - Search fragments for keywords",
         "  READ <ID>      - Display the contents of a lore node",
+        "  DECRYPT        - Initialize Resonance Matrix (Hacking Game)",
         "  STATUS         - Alias for SYSTEM",
         "  SYSTEM         - Show system status and clearance",
         "  CREDITS        - Show archive credits",
@@ -172,8 +183,7 @@ export const processCommand = (input: string): string => {
       ].join('\n');
 
     case 'DECRYPT':
-      if (args.length === 0) return "ERROR: DECRYPT REQUIRES A MANUSCRIPT ID.";
-      return `INITIALIZING DECRYPTION SEQUENCE FOR '${args[0].toUpperCase()}'...\n[PROGRESS: ##########] 100%\nDECRYPTION FAILED: INSUFFICIENT CLEARANCE.`;
+      return "INITIALIZING DECRYPTION SEQUENCE... [STAND BY]";
 
     case 'SCAN':
       return "SCANNING FOR NEARBY ARTIFACTS...\n[RECORDS FOUND: 42]\n[CRITICAL SIGNATURES DETECTED: 2]\nUSE 'LIST' TO VIEW UNRESTRICTED RECORDS.";
