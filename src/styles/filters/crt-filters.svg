@@ -1,15 +1,17 @@
-<svg xmlns="http://www.w3.org/2000/svg" version="1.1" class="hidden">
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" class="hidden" style="display:none; position:absolute; width:0; height:0;">
   <defs>
-    <!-- CRT Bulge/Distortion Filter -->
+    <!-- Authentic CRT Bulge/Distortion Filter -->
     <filter id="crt-distort">
       <feTurbulence type="fractalNoise" baseFrequency="0.00001 0.00001" numOctaves="1" result="noise" />
-      <feDisplacementMap in="SourceGraphic" in2="noise" scale="0" xChannelSelector="R" yChannelSelector="G" />
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="0" xChannelSelector="R" yChannelSelector="G" result="stable" />
+      <feMorphology operator="dilate" radius="0.5" in="stable" />
     </filter>
     
-    <!-- Phosphor Bloom Filter -->
-    <filter id="gold-bloom" x="-20%" y="-20%" width="140%" height="140%">
-      <feGaussianBlur stdDeviation="2" result="blur" />
-      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    <!-- High-Fidelity Phosphor Bloom Filter -->
+    <filter id="gold-bloom-filter" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="3" result="blur" />
+      <feColorMatrix in="blur" type="matrix" values="0 0 0 0 0.83  0 0 0 0 0.68  0 0 0 0 0.21  0 0 0 1 0" result="gold-glow" />
+      <feComposite in="SourceGraphic" in2="gold-glow" operator="over" />
     </filter>
   </defs>
 </svg>
