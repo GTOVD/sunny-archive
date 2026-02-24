@@ -5,7 +5,7 @@ import { getProducts } from '../shopify';
  * Extracts high-entropy words (length 4-12) from live Shopify artifact metadata.
  */
 
-export async function getLoreBuffer(): Promise<string[]> {
+export async function getLoreBufferWords(): Promise<string[]> {
   const products = await getProducts(50);
   
   if (!products || products.length === 0) {
@@ -19,13 +19,14 @@ export async function getLoreBuffer(): Promise<string[]> {
   products.forEach(product => {
     const text = `${product.title} ${product.description}`;
     const matches = text.match(wordRegex);
-    
-    // Extract words from titles and tags, focusing on lore-heavy identifiers
-    const words = products.flatMap((p: any) => {
-      const titleWords = p.title.toUpperCase().split(/\s+/).filter((w: string) => w.length >= 4 && w.length <= 8);
-      // Optional: tags if available in your schema
-      return titleWords;
-    });
+    if (matches) {
+      matches.forEach(word => {
+        if (word.length >= 4 && word.length <= 12) {
+          wordSet.add(word.toUpperCase());
+        }
+      });
+    }
+  });
 
   return Array.from(wordSet);
 }

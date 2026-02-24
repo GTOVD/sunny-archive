@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo } from 'react';
-import { getWordsForDifficulty } from '@/lib/lore/buffer-logic';
+import { selectWordsForGame } from '@/lib/lore/buffer-logic';
 
 export type GameStatus = 'idle' | 'active' | 'success' | 'locked';
 
@@ -41,7 +41,7 @@ export const useHackingGame = ({ difficulty, wordList }: HackingGameOptions) => 
     }
 
     // Use the hardened selection logic to get difficulty-compliant words
-    const filteredWords = getWordsForDifficulty(wordList, config.length, config.count);
+    const filteredWords = selectWordsForGame(wordList, config.length, config.count);
 
     const selected = filteredWords[Math.floor(Math.random() * filteredWords.length)];
     setTargetWord(selected.toUpperCase());
