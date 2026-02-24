@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
+import { cn } from '@/lib/utils';
 
 /**
  * Treasury Waitlist Component - "Acquisition Authorization Request"
  * A high-fidelity glassmorphism card for collectors to request access to out-of-stock artifacts.
  * Aligned with v2.3.0 Luxury Boutique standards.
  */
-export const WaitlistForm: React.FC = () => {
+export const WaitlistForm: React.FC<{ productId: string }> = ({ productId }) => {
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
 
@@ -13,10 +14,21 @@ export const WaitlistForm: React.FC = () => {
     e.preventDefault();
     setStatus('submitting');
     
-    // TODO: Implement actual Shopify Waitlist API call in Stage 3
-    setTimeout(() => {
-      setStatus('success');
-    }, 1500);
+    try {
+      const response = await fetch('/api/treasury/waitlist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, productId }),
+      });
+
+      if (response.ok) {
+        setStatus('success');
+      } else {
+        setStatus('error');
+      }
+    } catch (err) {
+      setStatus('error');
+    }
   };
 
   return (
@@ -33,7 +45,7 @@ export const WaitlistForm: React.FC = () => {
 
         {status === 'success' ? (
           <div className="p-4 border border-[#d4af37]/40 bg-[#d4af37]/5 animate-pulse">
-            <p className="text-[#d4af37] text-sm text-center uppercase tracking-widest">Authorization Logged. Standing by.</p>
+            <p className="text-[#d4af37] text-sm text-center uppercase tracking-widest font-mono">Authorization Logged. Standing by.</p>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -54,15 +66,19 @@ export const WaitlistForm: React.FC = () => {
             <button
               type="submit"
               disabled={status === 'submitting'}
-              className="w-full border border-[#d4af37]/40 p-4 text-[#d4af37] text-xs uppercase tracking-[0.4em] hover:bg-[#d4af37] hover:text-[#020617] transition-all duration-300 disabled:opacity-50"
+              className="w-full border border-[#d4af37]/40 p-4 text-[#d4af37] text-xs uppercase tracking-[0.4em] hover:bg-[#d4af37] hover:text-[#020617] transition-all duration-300 disabled:opacity-50 font-mono"
             >
               {status === 'submitting' ? 'Transmitting...' : 'Request Authorization'}
             </button>
+            
+            {status === 'error' && (
+              <p className="text-red-500 text-[10px] uppercase text-center tracking-widest font-mono animate-pulse">Transmission Error: Retry Connection</p>
+            )}
           </form>
         )}
         
         <div className="pt-4 border-t border-[#d4af37]/10">
-          <p className="text-[8px] text-[#397789]/40 uppercase tracking-widest text-center">GTOVD Secure Protocol // Archive v2.3.0</p>
+          <p className="text-[8px] text-[#397789]/40 uppercase tracking-widest text-center font-mono">GTOVD Secure Protocol // Archive v2.3.0</p>
         </div>
       </div>
     </div>
