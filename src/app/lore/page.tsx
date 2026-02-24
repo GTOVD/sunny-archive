@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import TerminalInterface from '@/components/lore/TerminalInterface';
 import { TerminalGrid } from '@/components/terminal/TerminalGrid';
 import AccessDenied from '@/components/lore/AccessDenied';
-import { getLoreBuffer } from '@/lib/lore/buffer-logic';
+import { getLoreBufferWords } from '@/lib/lore/buffer-logic';
 
 /**
  * Lore Page - The Sacred Vault / Interactive Terminal
