@@ -1,12 +1,24 @@
 import { getProducts } from '../shopify';
 
 /**
- * Dynamic Lore Buffer Utility
- * Synchronizes the hacking game word-buffer with actual Archive artifact metadata.
+ * Metadata Extraction logic for the Hacking Terminal
+ * Extracts high-entropy words (length 4-12) from live Shopify artifact metadata.
  */
+
 export async function getLoreBuffer(): Promise<string[]> {
-  try {
-    const products = await getProducts(50);
+  const products = await getProducts(50);
+  
+  if (!products || products.length === 0) {
+    console.warn("⚠️ No live artifacts found for buffer extraction.");
+    return [];
+  }
+
+  const wordSet = new Set<string>();
+  const wordRegex = /[A-Z]{4,12}/gi;
+
+  products.forEach(product => {
+    const text = `${product.title} ${product.description}`;
+    const matches = text.match(wordRegex);
     
     // Extract words from titles and tags, focusing on lore-heavy identifiers
     const words = products.flatMap((p: any) => {
@@ -15,16 +27,23 @@ export async function getLoreBuffer(): Promise<string[]> {
       return titleWords;
     });
 
-    // Deduplicate and filter for alphanumeric consistency
-    const cleanBuffer = Array.from(new Set(words))
-      .filter((w: unknown) => typeof w === 'string' && /^[A-Z0-9]+$/.test(w))
-      .sort();
+  return Array.from(wordSet);
+}
 
-    return (cleanBuffer as string[]).length >= 20 ? (cleanBuffer as string[]) : FALLBACK_BUFFER;
-  } catch (error) {
-    console.error('LORE_BUFFER_SYNC_FAILURE:', error);
-    return FALLBACK_BUFFER;
+/**
+ * Word Selection Engine
+ * Filters the buffer for words matching difficulty length constraints.
+ */
+export function selectWordsForGame(buffer: string[], length: number, count: number): string[] {
+  const pool = buffer.filter(w => w.length === length);
+  
+  // Graceful fallback if not enough words of exact length
+  if (pool.length < count) {
+    const fallback = buffer.filter(w => Math.abs(w.length - length) <= 1);
+    return fallback.sort(() => Math.random() - 0.5).slice(0, count);
   }
+
+  return pool.sort(() => Math.random() - 0.5).slice(0, count);
 }
 
 const FALLBACK_BUFFER = [

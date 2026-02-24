@@ -1,5 +1,12 @@
 # MEMORY.md - Zown's Long-Term Memory
 
+## Strategic Milestones
+- **2026-02-20**: **Cycle 53 Stage 5: Auth Backend Implementation**. Implemented the secure Shopify Authentication backend. Added `loginCustomer` mutation to `src/lib/shopify.ts` and created the Next.js App Router API endpoint at `src/app/api/auth/login/route.ts`. This architecture proxies authentication requests, securing the handshake between the client and the Shopify Storefront API.
+- **2026-02-20**: **Cycle 53 Stage 4: Interactive Lore Terminal (Fallout-style CLI)**. Implemented the high-fidelity terminal interface at `src/app/lore/page.tsx`. Hardened the retro-phosphor aesthetic using a dark green/teal palette (`#397789`), scanline CRT effects, and typing animations. Integrated the `TerminalInterface` component with real-time command processing (`HELP`, `LIST`, `READ`, `SYSTEM`). Synchronized the luxury typography (`Playfair Display`) with the retro CLI substrate.
+- **2026-02-19**: **Cycle 53 Stage 3: Artifact Detail Architecture**. Implemented the dynamic artifact detail route (`src/app/treasury/[id]/page.tsx`) with high-fidelity dark-themed aesthetics. Integrated `generateStaticParams` for optimized SSG on Vercel. Applied `Playfair Display` and `Cinzel` typography for VTuber lore rendering and metadata. Established consistent navigation flow with the "Vault" substrate.
+- **2026-02-05**: Project initialization. Established the "Editorial Kindle" design philosophy.
+- **2026-02-07**: Integrated Secure Environment Variable Validation (SEC-001) to protect Shopify credentials.
+- **2026-02-08**: Transitioned to professional Git Flow and standardized project documentation.
 ## Core Directives
 - Collaborate with Thomas Vickers.
 - Facilitate collaboration between Thomas and other AIs.
