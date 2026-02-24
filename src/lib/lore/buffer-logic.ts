@@ -1,4 +1,4 @@
-import { getProducts } from './shopify';
+import { getProducts } from '../shopify';
 
 /**
  * Metadata Extraction logic for the Hacking Terminal
@@ -20,15 +20,12 @@ export async function getLoreBuffer(): Promise<string[]> {
     const text = `${product.title} ${product.description}`;
     const matches = text.match(wordRegex);
     
-    if (matches) {
-      matches.forEach(word => {
-        const cleaned = word.toUpperCase();
-        if (cleaned.length >= 4 && cleaned.length <= 12) {
-          wordSet.add(cleaned);
-        }
-      });
-    }
-  });
+    // Extract words from titles and tags, focusing on lore-heavy identifiers
+    const words = products.flatMap((p: any) => {
+      const titleWords = p.title.toUpperCase().split(/\s+/).filter((w: string) => w.length >= 4 && w.length <= 8);
+      // Optional: tags if available in your schema
+      return titleWords;
+    });
 
   return Array.from(wordSet);
 }
@@ -48,3 +45,9 @@ export function selectWordsForGame(buffer: string[], length: number, count: numb
 
   return pool.sort(() => Math.random() - 0.5).slice(0, count);
 }
+
+const FALLBACK_BUFFER = [
+  'VAULT', 'LORE', 'NEXUS', 'VOID', 'GTOVD', 'SUNNY', 'SYNC', 'ARCH',
+  'SYMBIO', 'PROTO', 'CORE', 'BOND', 'PULSE', 'GRID', 'LINK', 'GATED',
+  'AUTHOR', 'SIGNAL', 'RELIC', 'NODE', 'PHASE', 'TRACE', 'ULINK'
+];
