@@ -31,7 +31,9 @@ export default function InteractiveTerminal({ dynamicLore, wordBuffer }: Interac
     status,
     logs,
     initGame,
-    selectWord
+    selectWord,
+    removeDud,
+    resetAttempts
   } = useHackingGame({ 
     difficulty: 'medium', 
     wordList 
@@ -90,6 +92,7 @@ export default function InteractiveTerminal({ dynamicLore, wordBuffer }: Interac
             onWordClick={selectWord} 
             attemptsRemaining={attemptsRemaining} 
             logs={logs}
+            onHintClick={(kind) => kind === 'dud' ? removeDud() : resetAttempts()}
           />
         )}
       </main>
